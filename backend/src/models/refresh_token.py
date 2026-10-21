@@ -7,12 +7,16 @@ this is an ORM mapping of that existing schema, not a new source of truth.
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import TIMESTAMP, Boolean, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import Base
+
+if TYPE_CHECKING:
+    from src.models.user import User
 
 
 class RefreshToken(Base):
@@ -28,6 +32,8 @@ class RefreshToken(Base):
     created_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     revoked: Mapped[bool | None] = mapped_column(Boolean(), nullable=True)
     revoked_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+
+    user: Mapped["User"] = relationship(back_populates="refresh_tokens")
 
     def __repr__(self) -> str:
         return f"RefreshToken(id={self.id!r}, user_id={self.user_id!r})"
