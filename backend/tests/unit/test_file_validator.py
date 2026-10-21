@@ -9,9 +9,11 @@ import pytest
 
 from src.api.exceptions import ValidationAppError
 from src.utils.file_validator import (
+    MAX_FILES_PER_UPLOAD,
     MAX_FILE_SIZE_BYTES,
     is_binary,
     validate_extension,
+    validate_file_count,
     validate_not_binary,
     validate_size,
 )
@@ -70,3 +72,12 @@ def test_validate_not_binary_raises_for_binary_content():
 
 def test_validate_not_binary_accepts_text_content():
     validate_not_binary(b"print('hello world')")  # must not raise
+
+
+def test_validate_file_count_accepts_up_to_the_limit():
+    validate_file_count(MAX_FILES_PER_UPLOAD)  # exactly at the limit — must not raise
+
+
+def test_validate_file_count_rejects_over_the_limit():
+    with pytest.raises(ValidationAppError):
+        validate_file_count(MAX_FILES_PER_UPLOAD + 1)
