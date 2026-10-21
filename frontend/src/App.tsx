@@ -6,14 +6,15 @@ import { QueryTest } from "./components/_QueryTest";
 import { ShadcnTest } from "./components/_ShadcnTest";
 import { TailwindTest } from "./components/_TailwindTest";
 import { useAuth } from "./hooks/useAuth";
+import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 /**
  * Stand-in for a page component that hasn't been built yet. Each route
  * below is replaced with its real page as that page's task is completed
- * (Login/Register: T035-T036 - done, Dashboard: T054, ProjectDetail: T055,
- * TaskDetail: T083, Trash: T181).
+ * (Login/Register: T035-T036 - done, Dashboard: T054 - done,
+ * ProjectDetail: T055, TaskDetail: T083, Trash: T181).
  */
 function PagePlaceholder({ label }: { label: string }) {
   return <div>{label} 페이지 (구현 예정)</div>;
@@ -33,7 +34,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         {/* Everything below requires a logged-in session (T037) */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<PagePlaceholder label="대시보드" />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/projects/:projectId" element={<PagePlaceholder label="프로젝트 상세" />} />
           <Route
             path="/projects/:projectId/tasks/:taskId"
