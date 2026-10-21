@@ -1,26 +1,41 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/project/ProjectCard";
-import { CreateProjectModal } from "@/components/project/CreateProjectModal";
-import { listProjects } from "@/services/project-service";
+import {
+  CreateProjectModal,
+  type CreateProjectModalValues,
+} from "@/components/project/CreateProjectModal";
+import { createProject, listProjects } from "@/services/project-service";
+
+const PROJECTS_QUERY_KEY = ["projects"];
 
 /**
- * Dashboard: lists the current user's active projects. Fetching is the
- * only concern here — the create-project flow (CreateProjectModal +
- * project-service.createProject, including refreshing this list after a
- * successful create) is wired in by T056.
+ * Dashboard: lists the current user's active projects, and lets the user
+ * create a new one via CreateProjectModal (T052) + project-service's
+ * createProject (T053). A successful create invalidates the projects
+ * query so the new project shows up immediately, without a manual
+ * reload.
  */
 export default function Dashboard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const queryClient = useQueryClient();
   const {
     data: projects,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["projects"],
+    queryKey: PROJECTS_QUERY_KEY,
     queryFn: listProjects,
+  });
+  const createProjectMutation = useMutation({
+    mutationFn: ({ title, description }: CreateProjectModalValues) =>
+      createProject(title, description || null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+      setIsCreateModalOpen(false);
+    },
   });
 
   return (
@@ -44,9 +59,7 @@ export default function Dashboard() {
       <CreateProjectModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={async () => {
-          setIsCreateModalOpen(false);
-        }}
+        onSubmit={(values) => createProjectMutation.mutateAsync(values)}
       />
     </div>
   );
