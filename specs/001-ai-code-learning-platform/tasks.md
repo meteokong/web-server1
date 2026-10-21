@@ -129,7 +129,7 @@ Web application structure (from plan.md):
 - [X] T029 Implement POST /auth/login endpoint in backend/src/api/auth.py
 - [X] T029A Implement GET /auth/me endpoint (current user) in backend/src/api/auth.py
 - [X] T030 Implement POST /auth/logout endpoint in backend/src/api/auth.py
-- [ ] T031 Implement POST /auth/refresh endpoint in backend/src/api/auth.py
+- [X] T031 Implement POST /auth/refresh endpoint in backend/src/api/auth.py
 
 ### Frontend: Authentication UI
 
