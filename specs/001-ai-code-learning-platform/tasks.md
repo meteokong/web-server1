@@ -183,10 +183,10 @@ Web application structure (from plan.md):
 
 ### Browser Testing: Project Management
 
-- [ ] T057 Manual browser test: Create new project → verify appears in dashboard
-- [ ] T058 Manual browser test: View project detail → verify project info displays
-- [ ] T059 Manual browser test: Edit project title → verify update persists
-- [ ] T060 Manual browser test: Delete project → verify soft delete and trash visibility
+- [X] T057 Manual browser test: Create new project → verify appears in dashboard
+- [X] T058 Manual browser test: View project detail → verify project info displays
+- [X] T059 Manual browser test: Edit project title → verify update persists
+- [X] T060 Manual browser test: Delete project → verify soft delete and trash visibility
 
 **Checkpoint**: Complete project management system working in browser
 
