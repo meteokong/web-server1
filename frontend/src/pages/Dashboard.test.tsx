@@ -2,15 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import userEvent from "@testing-library/user-event";
 import Dashboard from "./Dashboard";
-import { listProjects } from "@/services/project-service";
+import { createProject, listProjects } from "@/services/project-service";
 import type { Project } from "@/types/project";
 
 vi.mock("@/services/project-service", () => ({
   listProjects: vi.fn(),
+  createProject: vi.fn(),
 }));
 
 const mockedListProjects = listProjects as unknown as ReturnType<typeof vi.fn>;
+const mockedCreateProject = createProject as unknown as ReturnType<typeof vi.fn>;
 
 const projects: Project[] = [
   {
@@ -23,6 +26,16 @@ const projects: Project[] = [
     deletionStatus: "active",
   },
 ];
+
+const newProject: Project = {
+  id: "project-2",
+  title: "TypeScript 학습",
+  description: "타입 시스템 깊게 파기",
+  createdAt: "2026-10-21T00:00:00+00:00",
+  updatedAt: "2026-10-21T00:00:00+00:00",
+  lastActivityAt: "2026-10-21T00:00:00+00:00",
+  deletionStatus: "active",
+};
 
 function renderDashboard() {
   const queryClient = new QueryClient({
@@ -78,5 +91,34 @@ describe("Dashboard", () => {
     expect(
       await screen.findByRole("button", { name: /새 프로젝트/i }),
     ).toBeInTheDocument();
+  });
+
+  it("opens the create-project modal when the button is clicked", async () => {
+    mockedListProjects.mockResolvedValue(projects);
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(await screen.findByRole("button", { name: /새 프로젝트/i }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("creates a project via project-service and shows it in the list without a manual reload", async () => {
+    mockedListProjects.mockResolvedValueOnce(projects).mockResolvedValueOnce([
+      ...projects,
+      newProject,
+    ]);
+    mockedCreateProject.mockResolvedValue(newProject);
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(await screen.findByRole("button", { name: /새 프로젝트/i }));
+    await user.type(screen.getByLabelText(/제목/i), "TypeScript 학습");
+    await user.type(screen.getByLabelText(/설명/i), "타입 시스템 깊게 파기");
+    await user.click(screen.getByRole("button", { name: /생성/i }));
+
+    expect(await screen.findByText("TypeScript 학습")).toBeInTheDocument();
+    expect(mockedCreateProject).toHaveBeenCalledWith("TypeScript 학습", "타입 시스템 깊게 파기");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
