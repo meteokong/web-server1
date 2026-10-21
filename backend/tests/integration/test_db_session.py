@@ -18,8 +18,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.db.config import get_database_settings
-from src.models.user import User
 from src.main import app
+from src.models.user import User
 
 
 async def test_register_through_the_real_app_actually_persists_the_user():
