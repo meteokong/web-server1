@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthStoreTest } from "./components/_AuthStoreTest";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { DevTest } from "./components/_DevTest";
 import { QueryTest } from "./components/_QueryTest";
 import { ShadcnTest } from "./components/_ShadcnTest";
@@ -23,13 +24,16 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<PagePlaceholder label="대시보드" />} />
-        <Route path="/projects/:projectId" element={<PagePlaceholder label="프로젝트 상세" />} />
-        <Route
-          path="/projects/:projectId/tasks/:taskId"
-          element={<PagePlaceholder label="태스크 상세" />}
-        />
-        <Route path="/trash" element={<PagePlaceholder label="휴지통" />} />
+        {/* Everything below requires a logged-in session (T037) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<PagePlaceholder label="대시보드" />} />
+          <Route path="/projects/:projectId" element={<PagePlaceholder label="프로젝트 상세" />} />
+          <Route
+            path="/projects/:projectId/tasks/:taskId"
+            element={<PagePlaceholder label="태스크 상세" />}
+          />
+          <Route path="/trash" element={<PagePlaceholder label="휴지통" />} />
+        </Route>
         {/* TEMPORARY: T019 TanStack Query manual test route, see _QueryTest.tsx */}
         <Route path="/query-test" element={<QueryTest />} />
         {/* TEMPORARY: T020 axios client + T021 Zustand store manual test route */}
