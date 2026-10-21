@@ -164,7 +164,7 @@ async def test_get_user_projects_excludes_trashed_projects(db_session):
     service = ProjectService(db_session)
     keep = await service.create(owner.id, "React 학습")
     trashed = await service.create(owner.id, "Python 기초")
-    await service.soft_delete(trashed.id)
+    await service.soft_delete(trashed.id, owner.id)
 
     projects = await service.get_user_projects(owner.id)
 

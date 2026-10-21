@@ -1,8 +1,10 @@
 """ProjectService: create, get, update, and soft-delete Projects.
 
-Ownership validation (confirming the requesting user actually owns the
-project) is layered on top of this in T045 — these methods operate on a
-project_id alone and don't yet check who's allowed to touch it.
+Every lookup by project_id (get/update/soft_delete) requires the
+requesting user_id and verifies ownership — a project that exists but
+belongs to someone else raises the same NotFoundError as a project that
+doesn't exist at all, so a caller can't use the error to probe for
+other users' project ids (same reasoning as UserService's login error).
 """
 
 import uuid
@@ -33,9 +35,10 @@ class ProjectService:
         await self.db.flush()
         return project
 
-    async def get(self, project_id: uuid.UUID) -> Project:
-        """Fetch a project by id. Raises NotFoundError if it doesn't exist."""
-        return await self._get_or_404(project_id)
+    async def get(self, project_id: uuid.UUID, user_id: uuid.UUID) -> Project:
+        """Fetch a project owned by ``user_id``. Raises NotFoundError if it
+        doesn't exist or isn't owned by ``user_id``."""
+        return await self._get_owned_or_404(project_id, user_id)
 
     async def get_user_projects(self, user_id: uuid.UUID) -> list[Project]:
         """List a user's active (non-trashed) projects, newest first."""
@@ -49,14 +52,15 @@ class ProjectService:
     async def update(
         self,
         project_id: uuid.UUID,
+        user_id: uuid.UUID,
         *,
         title: str | None = None,
         description: str | None = None,
     ) -> Project:
         """Update a project's title and/or description. Raises NotFoundError
-        if the project doesn't exist, or ValidationAppError if a given title
-        is blank."""
-        project = await self._get_or_404(project_id)
+        if the project doesn't exist or isn't owned by ``user_id``, or
+        ValidationAppError if a given title is blank."""
+        project = await self._get_owned_or_404(project_id, user_id)
 
         if title is not None:
             _validate_title(title)
@@ -68,9 +72,10 @@ class ProjectService:
         await self.db.flush()
         return project
 
-    async def soft_delete(self, project_id: uuid.UUID) -> Project:
-        """Move a project to trash. Raises NotFoundError if it doesn't exist."""
-        project = await self._get_or_404(project_id)
+    async def soft_delete(self, project_id: uuid.UUID, user_id: uuid.UUID) -> Project:
+        """Move a project to trash. Raises NotFoundError if it doesn't exist
+        or isn't owned by ``user_id``."""
+        project = await self._get_owned_or_404(project_id, user_id)
 
         now = datetime.now(UTC)
         project.deletion_status = "trashed"
@@ -79,9 +84,9 @@ class ProjectService:
         await self.db.flush()
         return project
 
-    async def _get_or_404(self, project_id: uuid.UUID) -> Project:
+    async def _get_owned_or_404(self, project_id: uuid.UUID, user_id: uuid.UUID) -> Project:
         project = await self.db.get(Project, project_id)
-        if project is None:
+        if project is None or project.user_id != user_id:
             raise NotFoundError("project not found")
         return project
 
