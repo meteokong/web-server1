@@ -13,9 +13,7 @@ from src.services.auth.user_service import UserService
 
 
 async def test_logout_revokes_all_refresh_tokens_and_clears_cookies(auth_client, db_session):
-    user = await UserService(db_session).register(
-        "logout-api-ok@example.com", "correct-horse-123"
-    )
+    user = await UserService(db_session).register("logout-api-ok@example.com", "correct-horse-123")
     token_service = TokenService(db_session)
     pair1 = await token_service.issue_tokens(user)
     await token_service.issue_tokens(user)  # a second session for the same user
@@ -33,9 +31,7 @@ async def test_logout_revokes_all_refresh_tokens_and_clears_cookies(auth_client,
     assert "Max-Age=0" in access_clear
     assert "Max-Age=0" in refresh_clear
 
-    result = await db_session.execute(
-        select(RefreshToken).where(RefreshToken.user_id == user.id)
-    )
+    result = await db_session.execute(select(RefreshToken).where(RefreshToken.user_id == user.id))
     rows = result.scalars().all()
     assert len(rows) == 2
     assert all(row.revoked is True for row in rows)

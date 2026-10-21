@@ -70,6 +70,15 @@ def _set_auth_cookies(response: Response, pair: TokenPair) -> None:
     )
 
 
+def _clear_auth_cookies(response: Response) -> None:
+    response.delete_cookie(ACCESS_TOKEN_COOKIE_NAME)
+    response.delete_cookie(REFRESH_TOKEN_COOKIE_NAME)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(body: AuthRequest, db: AsyncSession = Depends(get_db)) -> User:
     """Create a new account. Does NOT log the user in (no cookies set) —
@@ -88,3 +97,14 @@ async def login(body: AuthRequest, response: Response, db: AsyncSession = Depend
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)) -> User:
     return current_user
+
+
+@router.post("/logout", response_model=MessageResponse)
+async def logout(
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MessageResponse:
+    await UserService(db).logout(current_user.id)
+    _clear_auth_cookies(response)
+    return MessageResponse(message="logged out")
