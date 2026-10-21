@@ -139,7 +139,7 @@ Web application structure (from plan.md):
 - [X] T035 Implement Register page in frontend/src/pages/Register.tsx
 - [X] T036 Implement Login page in frontend/src/pages/Login.tsx
 - [X] T037 Create ProtectedRoute wrapper component in frontend/src/components/auth/ProtectedRoute.tsx
-- [ ] T038 Implement auto token refresh logic in frontend/src/hooks/useAuth.ts
+- [X] T038 Implement auto token refresh logic in frontend/src/hooks/useAuth.ts
 
 ### Browser Testing: Authentication Flow
 
