@@ -8,6 +8,7 @@ project_id alone and don't yet check who's allowed to touch it.
 import uuid
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.exceptions import NotFoundError, ValidationAppError
@@ -35,6 +36,15 @@ class ProjectService:
     async def get(self, project_id: uuid.UUID) -> Project:
         """Fetch a project by id. Raises NotFoundError if it doesn't exist."""
         return await self._get_or_404(project_id)
+
+    async def get_user_projects(self, user_id: uuid.UUID) -> list[Project]:
+        """List a user's active (non-trashed) projects, newest first."""
+        result = await self.db.execute(
+            select(Project)
+            .where(Project.user_id == user_id, Project.deletion_status == "active")
+            .order_by(Project.created_at.desc())
+        )
+        return list(result.scalars().all())
 
     async def update(
         self,
