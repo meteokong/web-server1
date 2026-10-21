@@ -16,6 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base
 
 if TYPE_CHECKING:
+    from src.models.task import Task
     from src.models.user import User
 
 
@@ -51,6 +52,7 @@ class Project(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="projects")
+    tasks: Mapped[list["Task"]] = relationship(back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"Project(id={self.id!r}, user_id={self.user_id!r}, title={self.title!r})"
