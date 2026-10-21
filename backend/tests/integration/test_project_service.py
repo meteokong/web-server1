@@ -42,12 +42,12 @@ async def test_create_rejects_blank_title(db_session):
         await service.create(user.id, "   ")
 
 
-async def test_get_returns_the_project(db_session):
+async def test_get_returns_the_project_for_its_owner(db_session):
     user = await _make_user(db_session, "get-ok@example.com")
     service = ProjectService(db_session)
     created = await service.create(user.id, "Gettable Project")
 
-    fetched = await service.get(created.id)
+    fetched = await service.get(created.id, user.id)
 
     assert fetched.id == created.id
     assert fetched.title == "Gettable Project"
@@ -56,9 +56,20 @@ async def test_get_returns_the_project(db_session):
 async def test_get_raises_not_found_for_unknown_id(db_session):
     import uuid
 
+    user = await _make_user(db_session, "get-unknown@example.com")
     service = ProjectService(db_session)
     with pytest.raises(NotFoundError):
-        await service.get(uuid.uuid4())
+        await service.get(uuid.uuid4(), user.id)
+
+
+async def test_get_raises_not_found_when_requested_by_a_non_owner(db_session):
+    owner = await _make_user(db_session, "get-owner@example.com")
+    stranger = await _make_user(db_session, "get-stranger@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(owner.id, "Not Yours")
+
+    with pytest.raises(NotFoundError):
+        await service.get(created.id, stranger.id)
 
 
 async def test_update_changes_title_and_description(db_session):
@@ -66,7 +77,9 @@ async def test_update_changes_title_and_description(db_session):
     service = ProjectService(db_session)
     created = await service.create(user.id, "Old Title", "old description")
 
-    updated = await service.update(created.id, title="New Title", description="new description")
+    updated = await service.update(
+        created.id, user.id, title="New Title", description="new description"
+    )
 
     assert updated.title == "New Title"
     assert updated.description == "new description"
@@ -78,15 +91,26 @@ async def test_update_rejects_blank_title(db_session):
     created = await service.create(user.id, "Valid Title")
 
     with pytest.raises(ValidationAppError):
-        await service.update(created.id, title="   ")
+        await service.update(created.id, user.id, title="   ")
 
 
 async def test_update_raises_not_found_for_unknown_id(db_session):
     import uuid
 
+    user = await _make_user(db_session, "update-unknown@example.com")
     service = ProjectService(db_session)
     with pytest.raises(NotFoundError):
-        await service.update(uuid.uuid4(), title="whatever")
+        await service.update(uuid.uuid4(), user.id, title="whatever")
+
+
+async def test_update_raises_not_found_when_requested_by_a_non_owner(db_session):
+    owner = await _make_user(db_session, "update-owner@example.com")
+    stranger = await _make_user(db_session, "update-stranger@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(owner.id, "Not Yours")
+
+    with pytest.raises(NotFoundError):
+        await service.update(created.id, stranger.id, title="Hijacked")
 
 
 async def test_soft_delete_sets_trashed_status_and_schedule(db_session):
@@ -94,7 +118,7 @@ async def test_soft_delete_sets_trashed_status_and_schedule(db_session):
     service = ProjectService(db_session)
     created = await service.create(user.id, "Deletable Project")
 
-    deleted = await service.soft_delete(created.id)
+    deleted = await service.soft_delete(created.id, user.id)
 
     assert deleted.deletion_status == "trashed"
     assert deleted.trashed_at is not None
@@ -105,9 +129,20 @@ async def test_soft_delete_sets_trashed_status_and_schedule(db_session):
 async def test_soft_delete_raises_not_found_for_unknown_id(db_session):
     import uuid
 
+    user = await _make_user(db_session, "delete-unknown@example.com")
     service = ProjectService(db_session)
     with pytest.raises(NotFoundError):
-        await service.soft_delete(uuid.uuid4())
+        await service.soft_delete(uuid.uuid4(), user.id)
+
+
+async def test_soft_delete_raises_not_found_when_requested_by_a_non_owner(db_session):
+    owner = await _make_user(db_session, "delete-owner@example.com")
+    stranger = await _make_user(db_session, "delete-stranger@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(owner.id, "Not Yours")
+
+    with pytest.raises(NotFoundError):
+        await service.soft_delete(created.id, stranger.id)
 
 
 async def test_get_user_projects_returns_only_this_users_active_projects(db_session):
