@@ -16,6 +16,13 @@ async def db_session():
     gives each test function its own loop, so sharing one engine/pool
     across tests intermittently raises "Event loop is closed" errors.
 
+    Note for tests that also drive a FastAPI app through this session
+    (e.g. tests/integration/test_dependencies.py): use httpx.AsyncClient
+    with httpx.ASGITransport, not fastapi.testclient.TestClient.
+    TestClient runs the app on a separate thread with its own event
+    loop, which breaks this same-loop assumption; ASGITransport calls
+    the app in-process on the current loop.
+
     Nothing a test does through this session is ever committed — only
     flushed (so uniqueness/FK checks still run for real) — and the
     engine is disposed on teardown, so tests never leave data behind.

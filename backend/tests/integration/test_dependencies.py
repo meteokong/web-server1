@@ -1,17 +1,30 @@
 """Integration tests for the get_current_user auth dependency — run
-against the real database and a real FastAPI app/TestClient so the full
-chain (cookie -> dependency -> TokenService -> DB user lookup) is
-actually exercised, not mocked.
+against the real database and a real FastAPI app so the full chain
+(cookie -> dependency -> TokenService -> DB user lookup) is actually
+exercised, not mocked.
+
+Uses httpx.AsyncClient over ASGITransport rather than
+fastapi.testclient.TestClient: TestClient drives the ASGI app from a
+separate thread with its own event loop, which asyncpg's connections
+(tied to the loop that created them) don't tolerate — queries made
+during the request would intermittently fail or corrupt teardown with
+"Event loop is closed" / "attached to a different loop" errors.
+ASGITransport instead calls the app in-process, on this same test's
+event loop, so the DB session fixture's connection is always used from
+the one loop that created it.
 """
 
+import uuid
+
+import httpx
 from fastapi import Depends, FastAPI
-from fastapi.testclient import TestClient
 
 from src.api.dependencies import ACCESS_TOKEN_COOKIE_NAME, get_current_user
 from src.api.exceptions import register_exception_handlers
 from src.db.session import get_db
 from src.services.auth.token_service import TokenService
 from src.services.auth.user_service import UserService
+from src.utils.jwt import create_access_token
 
 
 def _build_test_app(db_session) -> FastAPI:
@@ -26,28 +39,33 @@ def _build_test_app(db_session) -> FastAPI:
     return app
 
 
+def _client_for(db_session) -> httpx.AsyncClient:
+    transport = httpx.ASGITransport(app=_build_test_app(db_session))
+    return httpx.AsyncClient(transport=transport, base_url="http://testserver")
+
+
 async def test_valid_access_token_cookie_resolves_the_user(db_session):
     user = await UserService(db_session).register("dep-ok@example.com", "correct-horse-123")
     pair = await TokenService(db_session).issue_tokens(user)
 
-    client = TestClient(_build_test_app(db_session))
-    client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, pair.access_token)
+    async with _client_for(db_session) as client:
+        client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, pair.access_token)
+        response = await client.get("/whoami")
 
-    response = client.get("/whoami")
     assert response.status_code == 200
     assert response.json() == {"id": str(user.id), "email": "dep-ok@example.com"}
 
 
-def test_missing_cookie_is_rejected(db_session):
-    client = TestClient(_build_test_app(db_session))
-    response = client.get("/whoami")
+async def test_missing_cookie_is_rejected(db_session):
+    async with _client_for(db_session) as client:
+        response = await client.get("/whoami")
     assert response.status_code == 401
 
 
-def test_garbage_cookie_is_rejected(db_session):
-    client = TestClient(_build_test_app(db_session))
-    client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, "not-a-real-token")
-    response = client.get("/whoami")
+async def test_garbage_cookie_is_rejected(db_session):
+    async with _client_for(db_session) as client:
+        client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, "not-a-real-token")
+        response = await client.get("/whoami")
     assert response.status_code == 401
 
 
@@ -56,24 +74,20 @@ async def test_refresh_token_used_as_access_cookie_is_rejected(db_session):
     user = await UserService(db_session).register("dep-wrong-type@example.com", "correct-horse-123")
     pair = await TokenService(db_session).issue_tokens(user)
 
-    client = TestClient(_build_test_app(db_session))
-    client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, pair.refresh_token)
+    async with _client_for(db_session) as client:
+        client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, pair.refresh_token)
+        response = await client.get("/whoami")
 
-    response = client.get("/whoami")
     assert response.status_code == 401
 
 
 async def test_well_signed_token_for_deleted_user_is_rejected(db_session):
     """A structurally valid access token whose user no longer exists in
     the DB must not resolve to a phantom user."""
-    import uuid
-
-    from src.utils.jwt import create_access_token
-
     phantom_token = create_access_token(str(uuid.uuid4()))
 
-    client = TestClient(_build_test_app(db_session))
-    client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, phantom_token)
+    async with _client_for(db_session) as client:
+        client.cookies.set(ACCESS_TOKEN_COOKIE_NAME, phantom_token)
+        response = await client.get("/whoami")
 
-    response = client.get("/whoami")
     assert response.status_code == 401
