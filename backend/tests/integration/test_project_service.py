@@ -1,0 +1,110 @@
+"""Integration tests for ProjectService — run against the real database
+(see tests/conftest.py's db_session fixture) because the behaviors that
+matter here (FK to users, soft-delete timestamps actually persisting)
+are DB-level guarantees, not something a mocked session would prove.
+"""
+
+from datetime import timedelta
+
+import pytest
+
+from src.api.exceptions import NotFoundError, ValidationAppError
+from src.models.user import User
+from src.services.project_service import ProjectService
+from src.utils.security import hash_password
+
+
+async def _make_user(db_session, email: str) -> User:
+    user = User(email=email, password_hash=hash_password("correct-horse-123"))
+    db_session.add(user)
+    await db_session.flush()
+    return user
+
+
+async def test_create_persists_project_owned_by_user(db_session):
+    user = await _make_user(db_session, "create-ok@example.com")
+    service = ProjectService(db_session)
+
+    project = await service.create(user.id, "My First Project", "learning FastAPI")
+
+    assert project.id is not None
+    assert project.user_id == user.id
+    assert project.title == "My First Project"
+    assert project.description == "learning FastAPI"
+    assert project.deletion_status == "active"
+
+
+async def test_create_rejects_blank_title(db_session):
+    user = await _make_user(db_session, "create-blank@example.com")
+    service = ProjectService(db_session)
+
+    with pytest.raises(ValidationAppError):
+        await service.create(user.id, "   ")
+
+
+async def test_get_returns_the_project(db_session):
+    user = await _make_user(db_session, "get-ok@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(user.id, "Gettable Project")
+
+    fetched = await service.get(created.id)
+
+    assert fetched.id == created.id
+    assert fetched.title == "Gettable Project"
+
+
+async def test_get_raises_not_found_for_unknown_id(db_session):
+    import uuid
+
+    service = ProjectService(db_session)
+    with pytest.raises(NotFoundError):
+        await service.get(uuid.uuid4())
+
+
+async def test_update_changes_title_and_description(db_session):
+    user = await _make_user(db_session, "update-ok@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(user.id, "Old Title", "old description")
+
+    updated = await service.update(created.id, title="New Title", description="new description")
+
+    assert updated.title == "New Title"
+    assert updated.description == "new description"
+
+
+async def test_update_rejects_blank_title(db_session):
+    user = await _make_user(db_session, "update-blank@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(user.id, "Valid Title")
+
+    with pytest.raises(ValidationAppError):
+        await service.update(created.id, title="   ")
+
+
+async def test_update_raises_not_found_for_unknown_id(db_session):
+    import uuid
+
+    service = ProjectService(db_session)
+    with pytest.raises(NotFoundError):
+        await service.update(uuid.uuid4(), title="whatever")
+
+
+async def test_soft_delete_sets_trashed_status_and_schedule(db_session):
+    user = await _make_user(db_session, "delete-ok@example.com")
+    service = ProjectService(db_session)
+    created = await service.create(user.id, "Deletable Project")
+
+    deleted = await service.soft_delete(created.id)
+
+    assert deleted.deletion_status == "trashed"
+    assert deleted.trashed_at is not None
+    assert deleted.scheduled_deletion_at is not None
+    assert deleted.scheduled_deletion_at - deleted.trashed_at == timedelta(days=30)
+
+
+async def test_soft_delete_raises_not_found_for_unknown_id(db_session):
+    import uuid
+
+    service = ProjectService(db_session)
+    with pytest.raises(NotFoundError):
+        await service.soft_delete(uuid.uuid4())
