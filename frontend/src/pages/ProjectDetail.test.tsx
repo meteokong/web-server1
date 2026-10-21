@@ -61,7 +61,9 @@ describe("ProjectDetail", () => {
 
     renderProjectDetail();
 
-    expect(await screen.findByText(/태스크 타임라인/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: /태스크 타임라인/ }),
+    ).toBeInTheDocument();
   });
 
   it("shows an error message when the fetch fails", async () => {
