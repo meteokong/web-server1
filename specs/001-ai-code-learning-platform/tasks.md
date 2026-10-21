@@ -176,7 +176,7 @@ Web application structure (from plan.md):
 
 - [X] T051 [P] Create ProjectCard component in frontend/src/components/project/ProjectCard.tsx
 - [X] T052 [P] Create CreateProjectModal component in frontend/src/components/project/CreateProjectModal.tsx
-- [ ] T053 Create project service (CRUD API calls) in frontend/src/services/project-service.ts
+- [X] T053 Create project service (CRUD API calls) in frontend/src/services/project-service.ts
 - [ ] T054 Implement Dashboard page (project list view) in frontend/src/pages/Dashboard.tsx
 - [ ] T055 Implement ProjectDetail page with task timeline placeholder in frontend/src/pages/ProjectDetail.tsx
 - [ ] T056 Add project creation flow in Dashboard page
