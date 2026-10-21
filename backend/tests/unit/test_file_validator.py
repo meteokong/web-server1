@@ -9,8 +9,8 @@ import pytest
 
 from src.api.exceptions import ValidationAppError
 from src.utils.file_validator import (
-    MAX_FILES_PER_UPLOAD,
     MAX_FILE_SIZE_BYTES,
+    MAX_FILES_PER_UPLOAD,
     is_binary,
     validate_extension,
     validate_file_count,

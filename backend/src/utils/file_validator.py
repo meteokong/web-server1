@@ -32,6 +32,10 @@ ALLOWED_EXTENSIONS = {
 # (upload_size_bytes <= 10485760) and .env.example's MAX_UPLOAD_SIZE_MB=10.
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
+# spec.md edge case: "Maximum 20 files per upload. Please select fewer
+# files or use folder upload."
+MAX_FILES_PER_UPLOAD = 20
+
 # A null byte anywhere in the content is a reliable, cheap signal that it's
 # not text — real source files in the allowed extensions never contain one.
 _BINARY_MARKER = b"\x00"
@@ -62,3 +66,12 @@ def validate_not_binary(content: bytes) -> None:
     """Raise ValidationAppError if `content` looks like a binary file."""
     if is_binary(content):
         raise ValidationAppError("binary files are not supported")
+
+
+def validate_file_count(count: int) -> None:
+    """Raise ValidationAppError if `count` exceeds the per-upload file limit."""
+    if count > MAX_FILES_PER_UPLOAD:
+        raise ValidationAppError(
+            f"Maximum {MAX_FILES_PER_UPLOAD} files per upload. "
+            "Please select fewer files or use folder upload."
+        )
