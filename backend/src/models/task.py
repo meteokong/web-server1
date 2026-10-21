@@ -17,6 +17,7 @@ from src.models.base import Base
 
 if TYPE_CHECKING:
     from src.models.project import Project
+    from src.models.uploaded_code import UploadedCode
 
 
 class Task(Base):
@@ -50,6 +51,9 @@ class Task(Base):
     )
 
     project: Mapped["Project"] = relationship(back_populates="tasks")
+    uploaded_code: Mapped["UploadedCode | None"] = relationship(
+        back_populates="task", uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"Task(id={self.id!r}, project_id={self.project_id!r}, task_number={self.task_number!r})"
