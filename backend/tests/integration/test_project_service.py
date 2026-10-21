@@ -108,3 +108,38 @@ async def test_soft_delete_raises_not_found_for_unknown_id(db_session):
     service = ProjectService(db_session)
     with pytest.raises(NotFoundError):
         await service.soft_delete(uuid.uuid4())
+
+
+async def test_get_user_projects_returns_only_this_users_active_projects(db_session):
+    owner = await _make_user(db_session, "list-owner@example.com")
+    other = await _make_user(db_session, "list-other@example.com")
+    service = ProjectService(db_session)
+    await service.create(owner.id, "React 학습")
+    await service.create(owner.id, "Python 기초")
+    await service.create(other.id, "Someone Else's Project")
+
+    projects = await service.get_user_projects(owner.id)
+
+    assert {p.title for p in projects} == {"React 학습", "Python 기초"}
+    assert all(p.user_id == owner.id for p in projects)
+
+
+async def test_get_user_projects_excludes_trashed_projects(db_session):
+    owner = await _make_user(db_session, "list-trash@example.com")
+    service = ProjectService(db_session)
+    keep = await service.create(owner.id, "React 학습")
+    trashed = await service.create(owner.id, "Python 기초")
+    await service.soft_delete(trashed.id)
+
+    projects = await service.get_user_projects(owner.id)
+
+    assert [p.id for p in projects] == [keep.id]
+
+
+async def test_get_user_projects_returns_empty_list_for_user_with_no_projects(db_session):
+    owner = await _make_user(db_session, "list-empty@example.com")
+    service = ProjectService(db_session)
+
+    projects = await service.get_user_projects(owner.id)
+
+    assert projects == []
