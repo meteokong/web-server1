@@ -1,4 +1,5 @@
-import axios, { type AxiosError } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "../stores/auth-store";
 
 /**
  * Shared axios instance every service module (auth-service, project-service,
@@ -39,9 +40,58 @@ export class ApiError extends Error {
   }
 }
 
+type RetriableRequestConfig = InternalAxiosRequestConfig & { _retriedAfterRefresh?: boolean };
+
+/**
+ * T038 auto-refresh design: the access token lives in an HTTPOnly cookie
+ * we can't read from JS, so we can't check its `exp` up front — the
+ * only signal we get is a 401 on whatever request happened to use it.
+ * So: on any 401 (that isn't the refresh call itself, and hasn't
+ * already been retried once), attempt exactly one POST /auth/refresh,
+ * then retry the original request once. If the refresh call also
+ * fails, the user's session is truly gone — clear the auth store so
+ * ProtectedRoute (T037) redirects to /login on the next render.
+ *
+ * `inFlightRefresh` dedupes concurrent 401s (e.g. several queries firing
+ * at once right as the access token expires) into a single refresh
+ * call instead of one per failed request.
+ */
+let inFlightRefresh: Promise<void> | null = null;
+
+function isRefreshRequest(config?: InternalAxiosRequestConfig): boolean {
+  return Boolean(config?.url?.includes("/auth/refresh"));
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiErrorBody>) => {
+  async (error: AxiosError<ApiErrorBody>) => {
+    const originalRequest = error.config as RetriableRequestConfig | undefined;
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retriedAfterRefresh &&
+      !isRefreshRequest(originalRequest)
+    ) {
+      originalRequest._retriedAfterRefresh = true;
+      try {
+        inFlightRefresh ??= apiClient
+          .post("/auth/refresh")
+          .then(() => undefined)
+          .finally(() => {
+            inFlightRefresh = null;
+          });
+        await inFlightRefresh;
+        return apiClient(originalRequest);
+      } catch {
+        // Refresh failed too: the session can't be recovered. Clear the
+        // client-side auth state and fall through to the normal error
+        // conversion below (auth-store has no dependency back on
+        // api-client, so this static import doesn't create a cycle).
+        useAuthStore.getState().clearUser();
+      }
+    }
+
     const body = error.response?.data;
     if (body?.error) {
       return Promise.reject(

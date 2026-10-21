@@ -5,6 +5,7 @@ import { DevTest } from "./components/_DevTest";
 import { QueryTest } from "./components/_QueryTest";
 import { ShadcnTest } from "./components/_ShadcnTest";
 import { TailwindTest } from "./components/_TailwindTest";
+import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -19,6 +20,12 @@ function PagePlaceholder({ label }: { label: string }) {
 }
 
 function App() {
+  // T038: on mount, find out whether a session cookie already exists
+  // (GET /auth/me) and populate the auth store either way, so
+  // ProtectedRoute below can stop waiting (isInitializing) and make its
+  // redirect-vs-render decision.
+  useAuth();
+
   return (
     <BrowserRouter>
       <Routes>

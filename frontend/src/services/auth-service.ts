@@ -51,3 +51,14 @@ export async function logout(): Promise<void> {
   await apiClient.post("/auth/logout");
   useAuthStore.getState().clearUser();
 }
+
+/**
+ * GET /auth/me. Used by useAuth (T038) on app mount to discover "is
+ * there already a valid session cookie?" — does not touch the store
+ * itself, that's the caller's job (mirrors register()'s split between
+ * "make the API call" and "decide what it means for the store").
+ */
+export async function getCurrentUser(): Promise<AuthUser> {
+  const response = await apiClient.get<UserResponseBody>("/auth/me");
+  return toAuthUser(response.data);
+}
