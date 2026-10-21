@@ -167,7 +167,7 @@ Web application structure (from plan.md):
 ### Backend: Project API Endpoints
 
 - [X] T046 Implement GET /projects endpoint in backend/src/api/projects.py
-- [ ] T047 Implement POST /projects endpoint in backend/src/api/projects.py
+- [X] T047 Implement POST /projects endpoint in backend/src/api/projects.py
 - [ ] T048 Implement GET /projects/{project_id} endpoint in backend/src/api/projects.py
 - [ ] T049 Implement PATCH /projects/{project_id} endpoint in backend/src/api/projects.py
 - [ ] T050 Implement DELETE /projects/{project_id} (soft delete) endpoint in backend/src/api/projects.py
