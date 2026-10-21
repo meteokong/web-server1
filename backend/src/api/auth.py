@@ -44,6 +44,10 @@ class UserResponse(BaseModel):
     created_at: datetime | None
 
 
+class MessageResponse(BaseModel):
+    message: str
+
+
 def _cookie_flags() -> dict:
     """Shared HTTPOnly cookie flags for both the access and refresh
     cookies (contract: samesite=strict, secure unless local development)."""
@@ -91,10 +95,6 @@ def _unauthorized_response_clearing_cookies(exc: UnauthorizedError) -> JSONRespo
     )
     _clear_auth_cookies(error_response)
     return error_response
-
-
-class MessageResponse(BaseModel):
-    message: str
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
