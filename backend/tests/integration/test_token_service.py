@@ -31,9 +31,7 @@ async def test_issue_tokens_returns_a_pair_and_persists_hashed_refresh_token(db_
     assert pair.access_token != pair.refresh_token
 
     expected_hash = hashlib.sha256(pair.refresh_token.encode("utf-8")).hexdigest()
-    row = await db_session.scalar(
-        select(RefreshToken).where(RefreshToken.user_id == user.id)
-    )
+    row = await db_session.scalar(select(RefreshToken).where(RefreshToken.user_id == user.id))
     assert row is not None
     assert row.token_hash == expected_hash
     # The raw token must never be stored, only its hash.

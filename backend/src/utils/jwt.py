@@ -7,6 +7,7 @@ versa. Each token also carries a ``type`` claim as a second line of
 defense against using one token type where the other is expected.
 """
 
+import uuid
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -64,6 +65,11 @@ def _create_token(
         "type": token_type,
         "iat": now,
         "exp": now + expires_delta,
+        # Without this, two tokens issued for the same subject within the
+        # same second (iat/exp truncate to whole seconds) are byte-for-byte
+        # identical strings — a real problem for refresh tokens, whose hash
+        # must be unique in the DB (see TokenService.issue_tokens/rotate).
+        "jti": str(uuid.uuid4()),
     }
     if extra_claims:
         payload.update(extra_claims)
