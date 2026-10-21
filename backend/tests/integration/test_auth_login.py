@@ -65,4 +65,6 @@ async def test_login_rejects_unknown_email_with_same_error_as_wrong_password(
 
     assert unknown_response.status_code == 401
     assert wrong_pw_response.status_code == 401
-    assert unknown_response.json()["error"]["message"] == wrong_pw_response.json()["error"]["message"]
+    assert (
+        unknown_response.json()["error"]["message"] == wrong_pw_response.json()["error"]["message"]
+    )
