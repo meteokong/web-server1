@@ -11,9 +11,7 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
 
 async def test_refresh_rotates_cookies_and_returns_current_user(auth_client, db_session):
-    user = await UserService(db_session).register(
-        "refresh-api-ok@example.com", "correct-horse-123"
-    )
+    user = await UserService(db_session).register("refresh-api-ok@example.com", "correct-horse-123")
     pair = await TokenService(db_session).issue_tokens(user)
 
     auth_client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, pair.refresh_token)
@@ -57,12 +55,15 @@ async def test_refresh_rejects_reuse_of_an_already_rotated_token(auth_client, db
     )
     pair = await TokenService(db_session).issue_tokens(user)
 
-    auth_client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, pair.refresh_token)
-    first_response = await auth_client.post("/api/v1/auth/refresh")
+    original_cookie_header = {"Cookie": f"{REFRESH_TOKEN_COOKIE_NAME}={pair.refresh_token}"}
+
+    first_response = await auth_client.post("/api/v1/auth/refresh", headers=original_cookie_header)
     assert first_response.status_code == 200
 
-    # Re-send the now-stale original refresh token.
-    auth_client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, pair.refresh_token)
-    second_response = await auth_client.post("/api/v1/auth/refresh")
+    # Re-send the now-stale original refresh token explicitly (setting the
+    # Cookie header directly, bypassing whatever the client's persistent
+    # cookie jar picked up from the first response) to prove the *old*
+    # token itself is rejected, not just "whatever the jar currently holds".
+    second_response = await auth_client.post("/api/v1/auth/refresh", headers=original_cookie_header)
 
     assert second_response.status_code == 401
