@@ -133,7 +133,7 @@ Web application structure (from plan.md):
 
 ### Frontend: Authentication UI
 
-- [ ] T032 [P] Create RegisterForm component in frontend/src/components/auth/RegisterForm.tsx
+- [X] T032 [P] Create RegisterForm component in frontend/src/components/auth/RegisterForm.tsx
 - [ ] T033 [P] Create LoginForm component in frontend/src/components/auth/LoginForm.tsx
 - [ ] T034 Create authentication service (register, login, logout API calls) in frontend/src/services/auth-service.ts
 - [ ] T035 Implement Register page in frontend/src/pages/Register.tsx
