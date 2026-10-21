@@ -125,7 +125,7 @@ Web application structure (from plan.md):
 
 ### Backend: Authentication API Endpoints
 
-- [ ] T028 Implement POST /auth/register endpoint in backend/src/api/auth.py
+- [X] T028 Implement POST /auth/register endpoint in backend/src/api/auth.py
 - [ ] T029 Implement POST /auth/login endpoint in backend/src/api/auth.py
 - [ ] T029A Implement GET /auth/me endpoint (current user) in backend/src/api/auth.py
 - [ ] T030 Implement POST /auth/logout endpoint in backend/src/api/auth.py
