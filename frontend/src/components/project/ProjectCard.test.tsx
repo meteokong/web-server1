@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ProjectCard } from "./ProjectCard";
-import type { Project } from "@/services/project-service";
+import type { Project } from "@/types/project";
 
 const project: Project = {
   id: "project-1",
