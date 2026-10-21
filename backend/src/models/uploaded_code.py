@@ -16,6 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base
 
 if TYPE_CHECKING:
+    from src.models.code_file import CodeFile
     from src.models.task import Task
 
 
@@ -46,6 +47,9 @@ class UploadedCode(Base):
     )
 
     task: Mapped["Task"] = relationship(back_populates="uploaded_code")
+    code_files: Mapped[list["CodeFile"]] = relationship(
+        back_populates="uploaded_code", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"UploadedCode(id={self.id!r}, task_id={self.task_id!r})"
