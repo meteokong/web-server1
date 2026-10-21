@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.dependencies import ACCESS_TOKEN_COOKIE_NAME
+from src.api.dependencies import ACCESS_TOKEN_COOKIE_NAME, get_current_user
 from src.config import get_app_settings
 from src.db.session import get_db
 from src.models.user import User
@@ -83,3 +83,8 @@ async def login(body: AuthRequest, response: Response, db: AsyncSession = Depend
     pair = await TokenService(db).issue_tokens(user)
     _set_auth_cookies(response, pair)
     return user
+
+
+@router.get("/me", response_model=UserResponse)
+async def me(current_user: User = Depends(get_current_user)) -> User:
+    return current_user
