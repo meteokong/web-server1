@@ -201,7 +201,7 @@ Web application structure (from plan.md):
 ### Backend: Task & Code Models
 
 - [X] T061 [P] Create Task SQLAlchemy model with sequential task_number in backend/src/models/task.py (must match T009 migration schema)
-- [ ] T062 [P] Create UploadedCode SQLAlchemy model in backend/src/models/uploaded_code.py (must match T009 migration schema)
+- [X] T062 [P] Create UploadedCode SQLAlchemy model in backend/src/models/uploaded_code.py (must match T009 migration schema)
 - [ ] T063 [P] Create CodeFile SQLAlchemy model in backend/src/models/code_file.py (must match T009 migration schema)
 - [ ] T064 Implement file validation utilities (extension, size, binary detection) in backend/src/utils/file_validator.py
 - [ ] T065 Implement language detection service using Pygments in backend/src/services/code_analysis/language_detector.py
