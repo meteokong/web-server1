@@ -56,7 +56,7 @@ def test_is_binary_true_for_content_with_a_null_byte():
 
 
 def test_is_binary_false_for_plain_text():
-    assert is_binary("def hello():\n    print('hi')\n".encode("utf-8")) is False
+    assert is_binary(b"def hello():\n    print('hi')\n") is False
 
 
 def test_is_binary_false_for_empty_content():
