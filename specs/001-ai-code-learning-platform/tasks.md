@@ -175,7 +175,7 @@ Web application structure (from plan.md):
 ### Frontend: Project UI
 
 - [X] T051 [P] Create ProjectCard component in frontend/src/components/project/ProjectCard.tsx
-- [ ] T052 [P] Create CreateProjectModal component in frontend/src/components/project/CreateProjectModal.tsx
+- [X] T052 [P] Create CreateProjectModal component in frontend/src/components/project/CreateProjectModal.tsx
 - [ ] T053 Create project service (CRUD API calls) in frontend/src/services/project-service.ts
 - [ ] T054 Implement Dashboard page (project list view) in frontend/src/pages/Dashboard.tsx
 - [ ] T055 Implement ProjectDetail page with task timeline placeholder in frontend/src/pages/ProjectDetail.tsx
