@@ -10,7 +10,6 @@ from sqlalchemy import select
 
 from src.api.exceptions import ConflictError, UnauthorizedError, ValidationAppError
 from src.models.refresh_token import RefreshToken
-from src.models.user import User
 from src.services.auth.user_service import UserService
 
 
@@ -100,9 +99,7 @@ async def test_logout_revokes_all_active_refresh_tokens_for_user(db_session):
 
     await service.logout(user.id)
 
-    result = await db_session.execute(
-        select(RefreshToken).where(RefreshToken.user_id == user.id)
-    )
+    result = await db_session.execute(select(RefreshToken).where(RefreshToken.user_id == user.id))
     tokens = result.scalars().all()
     assert len(tokens) == 2
     assert all(t.revoked is True for t in tokens)

@@ -1,18 +1,31 @@
 """Shared pytest fixtures for tests that need a real database session."""
 
 import pytest
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from src.db.session import AsyncSessionLocal
+from src.db.config import get_database_settings
 
 
 @pytest.fixture
 async def db_session():
     """A real AsyncSession against the live DB (see docker-compose.yml).
 
+    Builds its own engine (rather than reusing the module-level singleton
+    from src/db/session.py) bound to *this test's* event loop — asyncpg
+    connections are tied to the loop that created them, and pytest-asyncio
+    gives each test function its own loop, so sharing one engine/pool
+    across tests intermittently raises "Event loop is closed" errors.
+
     Nothing a test does through this session is ever committed — only
     flushed (so uniqueness/FK checks still run for real) — and the
-    session is rolled back on teardown, so tests never leave data behind.
+    engine is disposed on teardown, so tests never leave data behind.
     """
-    async with AsyncSessionLocal() as session:
+    settings = get_database_settings()
+    engine = create_async_engine(settings.async_database_url, pool_pre_ping=True)
+    session_factory = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+
+    async with session_factory() as session:
         yield session
         await session.rollback()
+
+    await engine.dispose()
