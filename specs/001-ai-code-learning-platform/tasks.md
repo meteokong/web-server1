@@ -274,7 +274,7 @@ Web application structure (from plan.md):
 
 - [X] T099 [P] Install and configure Monaco Editor in frontend/
 - [X] T100 [P] Create CodePanel component with syntax highlighting in frontend/src/components/document/CodePanel.tsx
-- [ ] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
+- [X] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
 - [X] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
 - [X] T103 [P] Create Chapter2Prerequisites component (concept cards) in frontend/src/components/document/chapters/Chapter2.tsx
 - [X] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
