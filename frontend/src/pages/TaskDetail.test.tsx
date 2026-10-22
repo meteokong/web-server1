@@ -11,6 +11,15 @@ vi.mock("@/services/task-service", () => ({
   getTask: vi.fn(),
 }));
 
+// DocumentViewer (T105/T107) does its own data-fetching (document-service,
+// task-service, Monaco) — TaskDetail only needs to pass it the taskId, so
+// it's stubbed here to keep this file focused on the tab wiring.
+vi.mock("@/components/document/DocumentViewer", () => ({
+  default: ({ taskId }: { taskId: string }) => (
+    <div data-testid="document-viewer">{taskId}</div>
+  ),
+}));
+
 const mockedGetTask = getTask as unknown as ReturnType<typeof vi.fn>;
 
 const task: Task = {
@@ -68,7 +77,7 @@ describe("TaskDetail", () => {
     expect(await screen.findByText("태스크를 찾을 수 없습니다.")).toBeInTheDocument();
   });
 
-  it("renders Document/Practice/Q&A tabs, defaulting to a Document placeholder", async () => {
+  it("renders Document/Practice/Q&A tabs, defaulting to the DocumentViewer for this task", async () => {
     mockedGetTask.mockResolvedValue(task);
 
     renderTaskDetail();
@@ -77,7 +86,7 @@ describe("TaskDetail", () => {
     expect(screen.getByRole("tab", { name: /문서/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /연습/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /질의응답|Q&A/i })).toBeInTheDocument();
-    expect(screen.getByText(/아직 구현되지 않았습니다/)).toBeInTheDocument();
+    expect(screen.getByTestId("document-viewer")).toHaveTextContent("task-1");
   });
 
   it("switches to the Practice tab's placeholder when clicked", async () => {
