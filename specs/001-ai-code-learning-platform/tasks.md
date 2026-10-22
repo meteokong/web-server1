@@ -280,7 +280,7 @@ Web application structure (from plan.md):
 - [X] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
 - [X] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
 - [X] T106 Create document service (fetch document, poll status) in frontend/src/services/document-service.ts
-- [ ] T107 Implement loading state with progress indicator in DocumentViewer
+- [X] T107 Implement loading state with progress indicator in DocumentViewer
 - [ ] T108 Add Document tab content to TaskDetail page in frontend/src/pages/TaskDetail.tsx
 
 ### Browser Testing: Document Generation
