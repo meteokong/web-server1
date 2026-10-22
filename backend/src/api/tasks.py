@@ -133,3 +133,12 @@ async def update_task(
     return await TaskService(db).update(
         task_id, current_user.id, title=body.title, description=body.description
     )
+
+
+@router.delete("/tasks/{task_id}", response_model=TaskResponse)
+async def delete_task(
+    task_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Task:
+    return await TaskService(db).soft_delete(task_id, current_user.id)
