@@ -3,10 +3,15 @@ Pygments content analysis for files without a recognizable extension.
 
 Every file reaching this service already passed `file_validator.
 validate_extension` (T064), so `EXTENSION_TO_LANGUAGE` only needs to cover
-`file_validator.ALLOWED_EXTENSIONS` — the Pygments fallback exists for the
-one case extension can't resolve: an extensionless pasted-code upload.
+`file_validator.ALLOWED_EXTENSIONS` — the content-based fallback exists
+for the one case extension can't resolve: an extensionless pasted-code
+upload. That fallback is itself two-layered: Pygments' `analyse_text`
+first, then a small set of keyword markers for the languages whose
+Pygments lexer doesn't implement `analyse_text` at all (always scores
+0.0) — javascript, typescript, java, css.
 """
 
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -60,6 +65,55 @@ _CONTENT_FALLBACK_LEXERS = {
 # real signal (e.g. every lexer scores >0 on trivial/ambiguous content).
 _CONFIDENCE_THRESHOLD = 0.1
 
+# Pygments' JavascriptLexer/TypeScriptLexer/JavaLexer/CssLexer don't define
+# a custom analyse_text — their analyse_text always scores 0.0, so they
+# never win in `_guess_from_content`. These keyword markers are a fallback
+# for exactly those four; checked in this order so TypeScript-specific
+# syntax (interfaces, type annotations) is preferred over the plainer
+# JavaScript markers it would also match.
+_KEYWORD_MARKERS: list[tuple[str, tuple[str, ...]]] = [
+    (
+        "typescript",
+        (
+            r"\binterface\s+\w+",
+            r":\s*(string|number|boolean|void|any)\b",
+            r"\bexport\s+type\b",
+        ),
+    ),
+    (
+        "javascript",
+        (
+            r"\bconsole\.log\(",
+            r"\bfunction\s+\w+\(",
+            r"=>",
+            r"\bconst\s+\w+\s*=",
+            r"\brequire\(",
+            r"module\.exports",
+        ),
+    ),
+    (
+        "java",
+        (
+            r"\bpublic\s+class\s+\w+",
+            r"\bpublic\s+static\s+void\s+main\b",
+            r"System\.out\.println",
+            r"^\s*import\s+java\.",
+        ),
+    ),
+    (
+        "css",
+        (
+            r"[.#][\w-]+\s*\{",
+            r"[\w-]+\s*:\s*[^;{}]+;",
+            r"@media\b",
+        ),
+    ),
+]
+
+# Minimum number of distinct markers that must match before a keyword
+# guess is trusted — one incidental match (e.g. a stray ":") isn't enough.
+_KEYWORD_MATCH_MINIMUM = 2
+
 
 def detect_file_language(filename: str, content: bytes | str = b"") -> str:
     """Detect a single file's language: by extension first, falling back
@@ -89,8 +143,24 @@ def _guess_from_content(content: bytes | str) -> str:
             return UNKNOWN_LANGUAGE
     if not content.strip():
         return UNKNOWN_LANGUAGE
+    # Keyword markers run first: they're specific syntax (interfaces, type
+    # annotations, `public class`, selector blocks), whereas PythonLexer's
+    # own analyse_text is dangerously broad — it scores 1.0 for ANY content
+    # containing the substring "import " anywhere in its first 1000 chars,
+    # which is a false positive for e.g. Java's `import java.util.List;`.
+    keyword_guess = _guess_from_keywords(content)
+    if keyword_guess != UNKNOWN_LANGUAGE:
+        return keyword_guess
     scores = {lang: lexer.analyse_text(content) for lang, lexer in _CONTENT_FALLBACK_LEXERS.items()}
     best_language, best_score = max(scores.items(), key=lambda item: item[1])
     if best_score > _CONFIDENCE_THRESHOLD:
         return best_language
+    return UNKNOWN_LANGUAGE
+
+
+def _guess_from_keywords(content: str) -> str:
+    for language, patterns in _KEYWORD_MARKERS:
+        matches = sum(1 for pattern in patterns if re.search(pattern, content, re.MULTILINE))
+        if matches >= _KEYWORD_MATCH_MINIMUM:
+            return language
     return UNKNOWN_LANGUAGE
