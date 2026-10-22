@@ -10,12 +10,13 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import ProjectDetail from "./pages/ProjectDetail";
 import Register from "./pages/Register";
+import TaskDetail from "./pages/TaskDetail";
 
 /**
  * Stand-in for a page component that hasn't been built yet. Each route
  * below is replaced with its real page as that page's task is completed
  * (Login/Register: T035-T036 - done, Dashboard: T054 - done,
- * ProjectDetail: T055 - done, TaskDetail: T083, Trash: T181).
+ * ProjectDetail: T055 - done, TaskDetail: T083 - done, Trash: T181).
  */
 function PagePlaceholder({ label }: { label: string }) {
   return <div>{label} 페이지 (구현 예정)</div>;
@@ -37,10 +38,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
-          <Route
-            path="/projects/:projectId/tasks/:taskId"
-            element={<PagePlaceholder label="태스크 상세" />}
-          />
+          <Route path="/projects/:projectId/tasks/:taskId" element={<TaskDetail />} />
           <Route path="/trash" element={<PagePlaceholder label="휴지통" />} />
         </Route>
         {/* TEMPORARY: T019 TanStack Query manual test route, see _QueryTest.tsx */}
