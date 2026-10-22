@@ -267,7 +267,7 @@ Web application structure (from plan.md):
 
 ### Backend: Document API Endpoints
 
-- [ ] T097 Implement GET /tasks/{task_id}/document endpoint in backend/src/api/documents.py
+- [X] T097 Implement GET /tasks/{task_id}/document endpoint in backend/src/api/documents.py
 - [ ] T098 Implement GET /tasks/{task_id}/document/status endpoint in backend/src/api/documents.py
 
 ### Frontend: Document Viewer UI
