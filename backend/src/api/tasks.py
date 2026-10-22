@@ -14,14 +14,17 @@ prefix (api_router itself already has prefix="/api/v1").
 
 import uuid
 from datetime import datetime
+from pathlib import Path
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies import get_current_user
 from src.db.session import get_db
+from src.models.task import Task
 from src.models.user import User
+from src.services.code_analysis.code_upload_service import CodeUploadService
 from src.services.project_service import ProjectService
 from src.services.task_service import TaskService
 
@@ -48,6 +51,12 @@ class TaskListResponse(BaseModel):
     tasks: list[TaskResponse]
 
 
+def get_upload_root() -> Path | None:
+    """FastAPI dependency so tests can override where CodeUploadService
+    writes files (default: None, i.e. the configured storage/uploads)."""
+    return None
+
+
 @router.get("/projects/{project_id}/tasks", response_model=TaskListResponse)
 async def list_tasks(
     project_id: uuid.UUID,
@@ -57,3 +66,44 @@ async def list_tasks(
     await ProjectService(db).get(project_id, current_user.id)
     tasks = await TaskService(db).list_by_project(project_id, current_user.id)
     return TaskListResponse(tasks=tasks)
+
+
+@router.post(
+    "/projects/{project_id}/tasks",
+    response_model=TaskResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_task(
+    project_id: uuid.UUID,
+    title: str = Form(...),
+    description: str | None = Form(None),
+    upload_method: str = Form(...),
+    pasted_code: str | None = Form(None),
+    files: list[UploadFile] = File(default=[]),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    upload_root: Path | None = Depends(get_upload_root),
+) -> Task:
+    task = await TaskService(db).create(
+        project_id, current_user.id, title, description, upload_method
+    )
+
+    upload_entries = None
+    if upload_method in ("file", "folder"):
+        upload_entries = []
+        for uploaded_file in files:
+            full_path = uploaded_file.filename or ""
+            file_name = Path(full_path).name
+            relative_path = (
+                full_path if upload_method == "folder" and full_path != file_name else None
+            )
+            upload_entries.append((file_name, relative_path, await uploaded_file.read()))
+
+    await CodeUploadService(db, upload_root=upload_root).upload(
+        task.id,
+        current_user.id,
+        upload_method,
+        files=upload_entries,
+        pasted_code=pasted_code,
+    )
+    return task

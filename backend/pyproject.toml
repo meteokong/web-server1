@@ -22,3 +22,12 @@ known-first-party = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+# SQLAlchemy's async engine bridges to its sync DBAPI via greenlet_spawn,
+# which switches stacks mid-coroutine. Without this, coverage.py's default
+# tracer loses line tracking for any synchronous code that runs between
+# two awaited DB calls in the same function — it silently under-reports
+# (discovered while implementing T071: API handler code between two
+# `await ...db...` calls showed as "missed" despite passing tests).
+concurrency = ["greenlet", "thread"]

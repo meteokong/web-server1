@@ -17,6 +17,12 @@ from src.services.project_service import ProjectService
 from src.services.task_service import TaskService
 
 
+def test_get_upload_root_default_is_none():
+    # Default dependency body (tests below override it to isolate writes
+    # under tmp_path) — exercised directly here for coverage.
+    assert get_upload_root() is None
+
+
 async def _login(db_session, client, email: str):
     user = await UserService(db_session).register(email, "correct-horse-123")
     pair = await TokenService(db_session).issue_tokens(user)
@@ -165,9 +171,7 @@ async def test_create_task_rejects_unsupported_file_extension(auth_client, db_se
 
 
 async def test_create_task_rejects_missing_auth(auth_client, db_session):
-    user = await UserService(db_session).register(
-        "create-noauth@example.com", "correct-horse-123"
-    )
+    user = await UserService(db_session).register("create-noauth@example.com", "correct-horse-123")
     project = await ProjectService(db_session).create(user.id, "Project")
 
     response = await auth_client.post(
