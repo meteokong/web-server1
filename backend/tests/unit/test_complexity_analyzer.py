@@ -37,12 +37,12 @@ def test_max_nesting_depth_is_zero_for_flat_content():
 
 
 def test_max_nesting_depth_pops_back_on_dedent():
-    content = (
-        "def f():\n"
-        "    if True:\n"
-        "        print('nested')\n"
-        "print('top level again')\n"
-    )
+    content = "def f():\n" "    if True:\n" "        print('nested')\n" "print('top level again')\n"
+    assert max_nesting_depth(content) == 2
+
+
+def test_max_nesting_depth_ignores_blank_lines_between_nested_blocks():
+    content = "def f():\n    if True:\n\n        print('nested')\n"
     assert max_nesting_depth(content) == 2
 
 
@@ -99,7 +99,10 @@ def test_assess_complexity_level_advanced_by_function_count():
 
 
 def test_assess_complexity_level_mid_range_is_intermediate():
-    assert assess_complexity_level(total_lines=100, nesting_depth=3, function_count=5) == "intermediate"
+    assert (
+        assess_complexity_level(total_lines=100, nesting_depth=3, function_count=5)
+        == "intermediate"
+    )
 
 
 def test_analyze_file_complexity_returns_metrics_for_simple_file():
