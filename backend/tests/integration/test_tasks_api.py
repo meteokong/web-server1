@@ -347,3 +347,64 @@ async def test_delete_task_404_for_another_users_task(auth_client, db_session):
     response = await auth_client.delete(f"/api/v1/tasks/{task.id}")
 
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/tasks/{task_id}/code (T075)
+# ---------------------------------------------------------------------------
+
+
+async def test_get_task_code_returns_uploaded_code_metadata(auth_client, db_session):
+    user = await _login(db_session, auth_client, "code-ok@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+
+    await auth_client.post(
+        f"/api/v1/projects/{project.id}/tasks",
+        data={"title": "Code Task", "upload_method": "file"},
+        files=[("files", ("main.py", b"def hello():\n    print('hi')\n", "text/x-python"))],
+    )
+    task_id = (await auth_client.get(f"/api/v1/projects/{project.id}/tasks")).json()["tasks"][0][
+        "id"
+    ]
+
+    response = await auth_client.get(f"/api/v1/tasks/{task_id}/code")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["task_id"] == task_id
+    assert body["detected_language"] == "python"
+    assert body["total_files"] == 1
+    assert len(body["code_files"]) == 1
+    assert body["code_files"][0]["file_name"] == "main.py"
+
+
+async def test_get_task_code_rejects_missing_auth(auth_client, db_session):
+    user = await UserService(db_session).register("code-noauth@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "No Auth Task")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}/code")
+
+    assert response.status_code == 401
+
+
+async def test_get_task_code_404_when_no_upload_exists(auth_client, db_session):
+    user = await _login(db_session, auth_client, "code-none@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Uploadless Task")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}/code")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"
+
+
+async def test_get_task_code_404_for_another_users_task(auth_client, db_session):
+    owner = await UserService(db_session).register("code-owner@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(owner.id, "Project")
+    task = await TaskService(db_session).create(project.id, owner.id, "Not Yours Task")
+    await _login(db_session, auth_client, "code-stranger@example.com")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}/code")
+
+    assert response.status_code == 404
