@@ -227,7 +227,7 @@ Web application structure (from plan.md):
 - [X] T076 [P] Create FileUpload component (drag-and-drop, file picker) in frontend/src/components/upload/FileUpload.tsx
 - [X] T077 [P] Create FolderUpload component (preserves structure) in frontend/src/components/upload/FolderUpload.tsx
 - [X] T078 [P] Create PasteCode component (textarea + language selector) in frontend/src/components/upload/PasteCode.tsx
-- [ ] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
+- [X] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
 - [ ] T080 Create task service (CRUD + upload API calls) in frontend/src/services/task-service.ts
 - [ ] T081 Implement CreateTaskModal with 3 upload methods in frontend/src/components/task/CreateTaskModal.tsx
 - [ ] T082 Add task list and creation to ProjectDetail page in frontend/src/pages/ProjectDetail.tsx
