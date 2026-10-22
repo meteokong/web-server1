@@ -14,6 +14,7 @@ UTF-8). The result is one UploadedCode row (at most one per task, per the
 """
 
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from sqlalchemy import select
@@ -29,8 +30,16 @@ from src.services.code_analysis.language_detector import (
     EXTENSION_TO_LANGUAGE,
     detect_project_language,
 )
+from src.services.document.document_queue_service import DocumentQueueService
 from src.services.task_service import TaskService
 from src.utils import file_validator
+
+# T096: called with (task_id, user_id) once an upload has fully succeeded,
+# to kick off async document generation. Defaults to the real
+# DocumentQueueService(db).enqueue (T095/T094) — see
+# CodeUploadService.__init__ — but is overridable so tests (and any other
+# caller) can swap in a no-op/fake instead of touching Celery/Redis.
+EnqueueDocumentGeneration = Callable[[uuid.UUID, uuid.UUID], Awaitable[None]]
 
 # Treated as a single file upload for the "paste" method — not a real
 # user-supplied filename, so always this fixed name/extension.
@@ -50,9 +59,19 @@ UploadEntry = tuple[str, str | None, bytes]
 
 
 class CodeUploadService:
-    def __init__(self, db: AsyncSession, *, upload_root: Path | None = None) -> None:
+    def __init__(
+        self,
+        db: AsyncSession,
+        *,
+        upload_root: Path | None = None,
+        enqueue_document_generation: EnqueueDocumentGeneration | None = None,
+    ) -> None:
         self.db = db
         self._upload_root = upload_root
+        self._enqueue_document_generation = enqueue_document_generation or self._default_enqueue
+
+    async def _default_enqueue(self, task_id: uuid.UUID, user_id: uuid.UUID) -> None:
+        await DocumentQueueService(self.db).enqueue(task_id, user_id)
 
     async def upload(
         self,
@@ -86,7 +105,14 @@ class CodeUploadService:
             file_validator.validate_size(len(content))
             file_validator.validate_not_binary(content)
 
-        return await self._store_and_analyze(task_id, user_id, entries, language)
+        uploaded_code = await self._store_and_analyze(task_id, user_id, entries, language)
+
+        # T096: trigger async document generation right after a
+        # successful upload — not before (validation failures above must
+        # never queue a generation for code that was never saved).
+        await self._enqueue_document_generation(task_id, user_id)
+
+        return uploaded_code
 
     async def get_for_task(self, task_id: uuid.UUID, user_id: uuid.UUID) -> UploadedCode:
         """Fetch the task's UploadedCode (with its CodeFiles eagerly
