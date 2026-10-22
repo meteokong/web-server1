@@ -209,7 +209,7 @@ Web application structure (from plan.md):
 
 ### Backend: Code Upload Services
 
-- [ ] T067 Implement file storage service (save to storage/uploads/{user_id}/{task_id}/) in backend/src/services/code_analysis/file_storage.py
+- [X] T067 Implement file storage service (save to storage/uploads/{user_id}/{task_id}/) in backend/src/services/code_analysis/file_storage.py
 - [ ] T068 Implement TaskService (create, get, update, soft delete with task_number auto-increment) in backend/src/services/task_service.py
 - [ ] T069 Implement CodeUploadService (handle file/folder/paste uploads) in backend/src/services/code_analysis/code_upload_service.py
 
