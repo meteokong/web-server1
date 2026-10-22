@@ -224,7 +224,7 @@ Web application structure (from plan.md):
 
 ### Frontend: Code Upload UI
 
-- [ ] T076 [P] Create FileUpload component (drag-and-drop, file picker) in frontend/src/components/upload/FileUpload.tsx
+- [X] T076 [P] Create FileUpload component (drag-and-drop, file picker) in frontend/src/components/upload/FileUpload.tsx
 - [ ] T077 [P] Create FolderUpload component (preserves structure) in frontend/src/components/upload/FolderUpload.tsx
 - [ ] T078 [P] Create PasteCode component (textarea + language selector) in frontend/src/components/upload/PasteCode.tsx
 - [ ] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
