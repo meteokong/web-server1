@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "./api-client";
-import { getDocument, getDocumentStatus } from "./document-service";
+import { documentStatusPollIntervalMs, getDocument, getDocumentStatus } from "./document-service";
 
 vi.mock("./api-client", () => ({
   apiClient: {
@@ -156,6 +156,22 @@ describe("document-service", () => {
       const document = await getDocument("task-1");
 
       expect(document.content).toBeNull();
+    });
+  });
+
+  describe("documentStatusPollIntervalMs", () => {
+    it("returns a poll interval while generation is pending or in progress", () => {
+      expect(documentStatusPollIntervalMs("pending")).toBe(4000);
+      expect(documentStatusPollIntervalMs("in_progress")).toBe(4000);
+    });
+
+    it("returns false (stop polling) once generation reaches a terminal state", () => {
+      expect(documentStatusPollIntervalMs("completed")).toBe(false);
+      expect(documentStatusPollIntervalMs("failed")).toBe(false);
+    });
+
+    it("returns false before the first status fetch resolves", () => {
+      expect(documentStatusPollIntervalMs(undefined)).toBe(false);
     });
   });
 });

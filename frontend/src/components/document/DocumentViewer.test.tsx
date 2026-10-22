@@ -1,11 +1,43 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DocumentViewer from "./DocumentViewer";
-import type { DocumentContent } from "@/types/document";
+import { getDocument, getDocumentStatus } from "@/services/document-service";
+import { getTaskCode } from "@/services/task-service";
+import type { DocumentContent, DocumentStatus, TaskDocument } from "@/types/document";
+import type { TaskCode } from "@/services/task-service";
 
+/**
+ * Monaco needs a real browser (canvas/workers) jsdom doesn't provide, so
+ * it's mocked the same way CodePanel.test.tsx does.
+ */
 vi.mock("@monaco-editor/react", () => ({
   default: (props: { value: string }) => <div data-testid="monaco-editor">{props.value}</div>,
 }));
+
+vi.mock("@/services/document-service", () => ({
+  getDocumentStatus: vi.fn(),
+  getDocument: vi.fn(),
+}));
+
+vi.mock("@/services/task-service", () => ({
+  getTaskCode: vi.fn(),
+}));
+
+const mockedGetDocumentStatus = getDocumentStatus as unknown as ReturnType<typeof vi.fn>;
+const mockedGetDocument = getDocument as unknown as ReturnType<typeof vi.fn>;
+const mockedGetTaskCode = getTaskCode as unknown as ReturnType<typeof vi.fn>;
+
+function status(overrides: Partial<DocumentStatus>): DocumentStatus {
+  return {
+    taskId: "task-1",
+    generationStatus: "pending",
+    generationError: null,
+    generationStartedAt: null,
+    generationCompletedAt: null,
+    ...overrides,
+  };
+}
 
 const content: DocumentContent = {
   chapter1: { title: "What This Code Does", summary: "배열을 정렬한다." },
@@ -17,67 +49,98 @@ const content: DocumentContent = {
   chapter7: { title: "Common Mistakes", mistakes: [] },
 };
 
-function setScrollMetrics(
-  el: HTMLElement,
-  metrics: { scrollTop: number; scrollHeight: number; clientHeight: number },
-) {
-  Object.defineProperty(el, "scrollTop", {
-    value: metrics.scrollTop,
-    writable: true,
-    configurable: true,
-  });
-  Object.defineProperty(el, "scrollHeight", {
-    value: metrics.scrollHeight,
-    configurable: true,
-  });
-  Object.defineProperty(el, "clientHeight", {
-    value: metrics.clientHeight,
-    configurable: true,
-  });
+const taskCode: TaskCode = {
+  uploadedCode: {
+    detectedLanguage: "python",
+    complexityLevel: "beginner",
+    totalLines: 10,
+    totalFiles: 1,
+    uploadSizeBytes: 100,
+  },
+  files: [{ fileName: "main.py", filePath: null, fileExtension: "py", fileSizeBytes: 100 }],
+};
+
+function renderViewer() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <DocumentViewer taskId="task-1" />
+    </QueryClientProvider>,
+  );
 }
 
 describe("DocumentViewer", () => {
-  it("renders the code in the left pane via CodePanel", () => {
-    render(<DocumentViewer code="print(1)" language="python" content={content} />);
+  it("shows a generating/loading indicator while status is pending", async () => {
+    mockedGetDocumentStatus.mockResolvedValue(status({ generationStatus: "pending" }));
 
-    expect(screen.getByTestId("monaco-editor")).toHaveTextContent("print(1)");
+    renderViewer();
+
+    expect(await screen.findByRole("status")).toHaveTextContent(/생성/);
   });
 
-  it("renders the explanation content in the right pane via ExplanationPanel", () => {
-    render(<DocumentViewer code="print(1)" language="python" content={content} />);
+  it("shows a generating/loading indicator while status is in_progress", async () => {
+    mockedGetDocumentStatus.mockResolvedValue(status({ generationStatus: "in_progress" }));
 
-    expect(screen.getByText("배열을 정렬한다.")).toBeInTheDocument();
+    renderViewer();
+
+    expect(await screen.findByRole("status")).toHaveTextContent(/생성/);
   });
 
-  it("syncs the explanation pane's scroll position proportionally when the code pane scrolls", () => {
-    render(<DocumentViewer code="print(1)" language="python" content={content} />);
+  it("shows an error message when generation failed", async () => {
+    mockedGetDocumentStatus.mockResolvedValue(
+      status({ generationStatus: "failed", generationError: "Gemini API 오류" }),
+    );
+
+    renderViewer();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Gemini API 오류");
+  });
+
+  it("fetches the document + code and renders the 2-column view once completed", async () => {
+    mockedGetDocumentStatus.mockResolvedValue(status({ generationStatus: "completed" }));
+    mockedGetDocument.mockResolvedValue({
+      taskId: "task-1",
+      generationStatus: "completed",
+      generationError: null,
+      content,
+    } satisfies TaskDocument);
+    mockedGetTaskCode.mockResolvedValue(taskCode);
+
+    renderViewer();
+
+    expect(await screen.findByText("배열을 정렬한다.")).toBeInTheDocument();
+    expect(screen.getByTestId("monaco-editor")).toHaveTextContent("main.py");
+  });
+
+  it("syncs the two panes' scroll position proportionally once the document is shown", async () => {
+    mockedGetDocumentStatus.mockResolvedValue(status({ generationStatus: "completed" }));
+    mockedGetDocument.mockResolvedValue({
+      taskId: "task-1",
+      generationStatus: "completed",
+      generationError: null,
+      content,
+    } satisfies TaskDocument);
+    mockedGetTaskCode.mockResolvedValue(taskCode);
+
+    renderViewer();
+    await screen.findByText("배열을 정렬한다.");
 
     const codePane = screen.getByTestId("document-viewer-code-pane");
     const explanationPane = screen.getByTestId("document-viewer-explanation-pane");
 
-    setScrollMetrics(codePane, { scrollTop: 50, scrollHeight: 300, clientHeight: 100 });
-    setScrollMetrics(explanationPane, { scrollTop: 0, scrollHeight: 600, clientHeight: 100 });
+    Object.defineProperty(codePane, "scrollTop", { value: 50, writable: true, configurable: true });
+    Object.defineProperty(codePane, "scrollHeight", { value: 300, configurable: true });
+    Object.defineProperty(codePane, "clientHeight", { value: 100, configurable: true });
+    Object.defineProperty(explanationPane, "scrollTop", {
+      value: 0,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(explanationPane, "scrollHeight", { value: 600, configurable: true });
+    Object.defineProperty(explanationPane, "clientHeight", { value: 100, configurable: true });
 
     fireEvent.scroll(codePane);
 
-    // codePane scrolled to 50/(300-100) = 25% -> explanationPane should move
-    // to 25% of its own (600-100) scrollable range = 125.
     expect(explanationPane.scrollTop).toBe(125);
-  });
-
-  it("syncs the code pane's scroll position proportionally when the explanation pane scrolls", () => {
-    render(<DocumentViewer code="print(1)" language="python" content={content} />);
-
-    const codePane = screen.getByTestId("document-viewer-code-pane");
-    const explanationPane = screen.getByTestId("document-viewer-explanation-pane");
-
-    setScrollMetrics(explanationPane, { scrollTop: 250, scrollHeight: 600, clientHeight: 100 });
-    setScrollMetrics(codePane, { scrollTop: 0, scrollHeight: 300, clientHeight: 100 });
-
-    fireEvent.scroll(explanationPane);
-
-    // explanationPane scrolled to 250/(600-100) = 50% -> codePane should
-    // move to 50% of its own (300-100) scrollable range = 100.
-    expect(codePane.scrollTop).toBe(100);
   });
 });
