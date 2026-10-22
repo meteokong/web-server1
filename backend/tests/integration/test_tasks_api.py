@@ -239,3 +239,71 @@ async def test_get_task_404_for_another_users_task(auth_client, db_session):
     response = await auth_client.get(f"/api/v1/tasks/{task.id}")
 
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/v1/tasks/{task_id} (T073)
+# ---------------------------------------------------------------------------
+
+
+async def test_patch_task_updates_title_and_description(auth_client, db_session):
+    user = await _login(db_session, auth_client, "patch-ok@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Old Title", "old description")
+
+    response = await auth_client.patch(
+        f"/api/v1/tasks/{task.id}",
+        json={"title": "New Title", "description": "new description"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["title"] == "New Title"
+    assert body["description"] == "new description"
+
+
+async def test_patch_task_partial_update_keeps_other_field(auth_client, db_session):
+    user = await _login(db_session, auth_client, "patch-partial@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Keep Me", "keep description")
+
+    response = await auth_client.patch(
+        f"/api/v1/tasks/{task.id}", json={"description": "updated only"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["title"] == "Keep Me"
+    assert body["description"] == "updated only"
+
+
+async def test_patch_task_rejects_title_under_5_characters(auth_client, db_session):
+    user = await _login(db_session, auth_client, "patch-short@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Valid Title")
+
+    response = await auth_client.patch(f"/api/v1/tasks/{task.id}", json={"title": "abcd"})
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "validation_error"
+
+
+async def test_patch_task_rejects_missing_auth(auth_client, db_session):
+    user = await UserService(db_session).register("patch-noauth@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "No Auth Task")
+
+    response = await auth_client.patch(f"/api/v1/tasks/{task.id}", json={"title": "Hijacked Title"})
+
+    assert response.status_code == 401
+
+
+async def test_patch_task_404_for_another_users_task(auth_client, db_session):
+    owner = await UserService(db_session).register("patch-owner@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(owner.id, "Project")
+    task = await TaskService(db_session).create(project.id, owner.id, "Not Yours Task")
+    await _login(db_session, auth_client, "patch-stranger@example.com")
+
+    response = await auth_client.patch(f"/api/v1/tasks/{task.id}", json={"title": "Hijacked Title"})
+
+    assert response.status_code == 404
