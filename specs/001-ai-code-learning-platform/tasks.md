@@ -235,12 +235,12 @@ Web application structure (from plan.md):
 
 ### Browser Testing: Task & Code Upload
 
-- [ ] T084 Manual browser test: Create task with single file upload → verify task created with Task 1 number
-- [ ] T085 Manual browser test: Create task with folder upload → verify folder structure preserved
-- [ ] T086 Manual browser test: Create task with paste code → verify language detection
-- [ ] T087 Manual browser test: Upload 11MB file → verify rejection with error message
-- [ ] T088 Manual browser test: Upload binary file → verify rejection with error message
-- [ ] T089 Manual browser test: Create 3 tasks in sequence → verify task numbers are 1, 2, 3
+- [X] T084 Manual browser test: Create task with single file upload → verify task created with Task 1 number
+- [X] T085 Manual browser test: Create task with folder upload → verify folder structure preserved
+- [X] T086 Manual browser test: Create task with paste code → verify language detection
+- [X] T087 Manual browser test: Upload 11MB file → verify rejection with error message
+- [X] T088 Manual browser test: Upload binary file → verify rejection with error message
+- [X] T089 Manual browser test: Create 3 tasks in sequence → verify task numbers are 1, 2, 3
 
 **Checkpoint**: Complete task creation and code upload system working in browser
 
