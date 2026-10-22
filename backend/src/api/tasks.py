@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.dependencies import get_current_user
 from src.db.session import get_db
 from src.models.task import Task
+from src.models.uploaded_code import UploadedCode
 from src.models.user import User
 from src.services.code_analysis.code_upload_service import CodeUploadService
 from src.services.project_service import ProjectService
@@ -54,6 +55,29 @@ class TaskListResponse(BaseModel):
 class TaskUpdateRequest(BaseModel):
     title: str | None = None
     description: str | None = None
+
+
+class CodeFileResponse(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: uuid.UUID
+    file_name: str
+    file_path: str | None
+    file_extension: str | None
+    file_size_bytes: int | None
+
+
+class UploadedCodeResponse(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: uuid.UUID
+    task_id: uuid.UUID
+    detected_language: str | None
+    complexity_level: str | None
+    total_lines: int | None
+    total_files: int | None
+    upload_size_bytes: int | None
+    code_files: list[CodeFileResponse]
 
 
 def get_upload_root() -> Path | None:
@@ -142,3 +166,12 @@ async def delete_task(
     db: AsyncSession = Depends(get_db),
 ) -> Task:
     return await TaskService(db).soft_delete(task_id, current_user.id)
+
+
+@router.get("/tasks/{task_id}/code", response_model=UploadedCodeResponse)
+async def get_task_code(
+    task_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UploadedCode:
+    return await CodeUploadService(db).get_for_task(task_id, current_user.id)
