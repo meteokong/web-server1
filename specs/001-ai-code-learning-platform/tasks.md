@@ -278,7 +278,7 @@ Web application structure (from plan.md):
 - [X] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
 - [X] T103 [P] Create Chapter2Prerequisites component (concept cards) in frontend/src/components/document/chapters/Chapter2.tsx
 - [X] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
-- [ ] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
+- [X] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
 - [ ] T106 Create document service (fetch document, poll status) in frontend/src/services/document-service.ts
 - [ ] T107 Implement loading state with progress indicator in DocumentViewer
 - [ ] T108 Add Document tab content to TaskDetail page in frontend/src/pages/TaskDetail.tsx
