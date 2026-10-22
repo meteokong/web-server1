@@ -3,6 +3,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CreateTaskModal } from "./CreateTaskModal";
 
+function makeFolderFile(name: string, relativePath: string) {
+  const file = new File(["code"], name, { type: "text/plain" });
+  Object.defineProperty(file, "webkitRelativePath", { value: relativePath });
+  return file;
+}
+
 describe("CreateTaskModal", () => {
   it("renders nothing when closed", () => {
     render(<CreateTaskModal open={false} onClose={vi.fn()} onSubmit={vi.fn()} />);
@@ -66,6 +72,53 @@ describe("CreateTaskModal", () => {
           title: "배열 정렬 연습",
           uploadMethod: "paste",
           pastedCode: "print(1)",
+        }),
+      );
+    });
+  });
+
+  it("calls onSubmit with pastedLanguage for a paste submission", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<CreateTaskModal open={true} onClose={vi.fn()} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText(/제목/i), "배열 정렬 연습");
+    await user.click(screen.getByRole("radio", { name: /코드 붙여넣기/i }));
+    await user.type(screen.getByLabelText(/^코드$/i), "console.log(1)");
+    await user.selectOptions(screen.getByLabelText(/언어/i), "javascript");
+    await user.click(screen.getByRole("button", { name: /생성/i }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pastedCode: "console.log(1)",
+          pastedLanguage: "javascript",
+        }),
+      );
+    });
+  });
+
+  it("calls onSubmit with each folder file's relativePath for a folder submission", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<CreateTaskModal open={true} onClose={vi.fn()} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText(/제목/i), "폴더 업로드 연습");
+    await user.click(screen.getByRole("radio", { name: /폴더 업로드/i }));
+
+    const file = makeFolderFile("main.py", "myproject/main.py");
+    const input = screen.getByLabelText(/폴더 선택/i) as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [file] });
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+
+    await user.click(screen.getByRole("button", { name: /생성/i }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uploadMethod: "folder",
+          files: [file],
+          relativePaths: ["myproject/main.py"],
         }),
       );
     });
