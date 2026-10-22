@@ -4,12 +4,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteProject, getProject, updateProject } from "@/services/project-service";
+import { createTask, listTasks } from "@/services/task-service";
+import { TaskCard } from "@/components/task/TaskCard";
+import {
+  CreateTaskModal,
+  type CreateTaskModalValues,
+} from "@/components/task/CreateTaskModal";
 
 /**
  * ProjectDetail: fetches and shows one project by the :projectId route
- * param. The task timeline (listing/managing the project's tasks) is a
- * later feature (Phase 6+) — this renders a placeholder for it so the
- * page's layout is in place before that work lands.
+ * param, plus its task timeline — a list of TaskCards (T079) fetched via
+ * listTasks (T080), with a "새 태스크" button opening CreateTaskModal
+ * (T081). A successful create invalidates the tasks query so the new task
+ * shows up immediately, mirroring Dashboard's createProjectMutation (T054).
  *
  * Also offers the minimal inline edit (title only) and delete (soft
  * delete, then back to the dashboard) actions needed for the T059/T060
@@ -23,6 +30,8 @@ export default function ProjectDetail() {
   const titleInputId = useId();
   const [isEditing, setIsEditing] = useState(false);
   const [titleInput, setTitleInput] = useState("");
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const tasksQueryKey = ["tasks", projectId];
 
   const {
     data: project,
@@ -33,6 +42,36 @@ export default function ProjectDetail() {
     queryKey: ["projects", projectId],
     queryFn: () => getProject(projectId as string),
     enabled: Boolean(projectId),
+  });
+
+  const {
+    data: tasks,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+    error: tasksError,
+  } = useQuery({
+    queryKey: tasksQueryKey,
+    queryFn: () => listTasks(projectId as string),
+    enabled: Boolean(projectId),
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: (values: CreateTaskModalValues) =>
+      createTask(projectId as string, {
+        title: values.title,
+        description: values.description || undefined,
+        uploadMethod: values.uploadMethod,
+        files: values.files,
+        pastedCode: values.pastedCode,
+      }),
+    onSuccess: () => {
+      // exact: true — tasksQueryKey (["tasks", projectId]) is itself the
+      // narrowest key here, but kept explicit for consistency with the
+      // updateMutation/deleteMutation below, which rely on it to avoid
+      // prefix-matching ["projects", projectId].
+      queryClient.invalidateQueries({ queryKey: tasksQueryKey, exact: true });
+      setIsCreateTaskModalOpen(false);
+    },
   });
 
   const updateMutation = useMutation({
@@ -111,7 +150,30 @@ export default function ProjectDetail() {
 
       <section>
         <h2>태스크 타임라인</h2>
-        <p>태스크 타임라인 기능은 아직 구현되지 않았습니다.</p>
+        <Button onClick={() => setIsCreateTaskModalOpen(true)}>새 태스크</Button>
+
+        {isTasksLoading && <p>로딩 중...</p>}
+        {isTasksError && (
+          <p role="alert">
+            {tasksError instanceof Error ? tasksError.message : "오류가 발생했습니다."}
+          </p>
+        )}
+        {!isTasksLoading && !isTasksError && tasks && tasks.length === 0 && (
+          <p>아직 태스크가 없습니다.</p>
+        )}
+        {!isTasksLoading && !isTasksError && tasks && tasks.length > 0 && (
+          <div>
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+          </div>
+        )}
+
+        <CreateTaskModal
+          open={isCreateTaskModalOpen}
+          onClose={() => setIsCreateTaskModalOpen(false)}
+          onSubmit={(values) => createTaskMutation.mutateAsync(values)}
+        />
       </section>
     </div>
   );
