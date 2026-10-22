@@ -261,7 +261,7 @@ Web application structure (from plan.md):
 
 ### Backend: Async Document Generation
 
-- [ ] T094 Implement Celery task for async document generation in backend/src/tasks/document_generation.py
+- [X] T094 Implement Celery task for async document generation in backend/src/tasks/document_generation.py
 - [ ] T095 Implement document generation queue with status tracking in backend/src/services/document/document_queue_service.py
 - [ ] T096 Add document generation trigger after code upload in TaskService
 
@@ -275,7 +275,7 @@ Web application structure (from plan.md):
 - [X] T099 [P] Install and configure Monaco Editor in frontend/
 - [X] T100 [P] Create CodePanel component with syntax highlighting in frontend/src/components/document/CodePanel.tsx
 - [ ] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
-- [ ] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
+- [X] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
 - [ ] T103 [P] Create Chapter2Prerequisites component (concept cards) in frontend/src/components/document/chapters/Chapter2.tsx
 - [ ] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
 - [ ] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
