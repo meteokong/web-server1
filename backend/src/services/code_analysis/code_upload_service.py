@@ -25,7 +25,10 @@ from src.models.code_file import CodeFile
 from src.models.uploaded_code import UploadedCode
 from src.services.code_analysis import file_storage
 from src.services.code_analysis.complexity_analyzer import analyze_project_complexity
-from src.services.code_analysis.language_detector import detect_project_language
+from src.services.code_analysis.language_detector import (
+    EXTENSION_TO_LANGUAGE,
+    detect_project_language,
+)
 from src.services.task_service import TaskService
 from src.utils import file_validator
 
@@ -34,6 +37,11 @@ from src.utils import file_validator
 PASTE_FILENAME = "pasted_code.txt"
 
 _UPLOAD_METHODS = ("file", "folder", "paste")
+
+# Languages PasteCode's <select> (T078) offers — mirrors
+# language_detector.EXTENSION_TO_LANGUAGE's values exactly, since that's
+# where the frontend's option list was itself derived from.
+_SUPPORTED_LANGUAGES = set(EXTENSION_TO_LANGUAGE.values())
 
 # (filename, relative_path, content) — relative_path is None for a flat
 # upload (single file / each file in a multi-file "file" upload), and the
@@ -54,12 +62,21 @@ class CodeUploadService:
         *,
         files: list[UploadEntry] | None = None,
         pasted_code: str | None = None,
+        language: str | None = None,
     ) -> UploadedCode:
         """Validate, store, and analyze an upload for ``task_id``. Raises
         ValidationAppError on any validation failure (nothing is written
         in that case), or NotFoundError if the task isn't owned by
-        ``user_id``."""
+        ``user_id``.
+
+        ``language``: an explicit language the caller already knows (e.g.
+        PasteCode's language <select>) — trusted as-is instead of running
+        detection, since a human-selected value beats a guess. Must be one
+        of EXTENSION_TO_LANGUAGE's values if given."""
         await TaskService(self.db).get(task_id, user_id)  # ownership + 404
+
+        if language is not None and language not in _SUPPORTED_LANGUAGES:
+            raise ValidationAppError(f"unsupported language: {language!r}")
 
         entries = self._resolve_entries(upload_method, files, pasted_code)
 
@@ -69,7 +86,7 @@ class CodeUploadService:
             file_validator.validate_size(len(content))
             file_validator.validate_not_binary(content)
 
-        return await self._store_and_analyze(task_id, user_id, entries)
+        return await self._store_and_analyze(task_id, user_id, entries, language)
 
     async def get_for_task(self, task_id: uuid.UUID, user_id: uuid.UUID) -> UploadedCode:
         """Fetch the task's UploadedCode (with its CodeFiles eagerly
@@ -106,7 +123,11 @@ class CodeUploadService:
         return files
 
     async def _store_and_analyze(
-        self, task_id: uuid.UUID, user_id: uuid.UUID, entries: list[UploadEntry]
+        self,
+        task_id: uuid.UUID,
+        user_id: uuid.UUID,
+        entries: list[UploadEntry],
+        language: str | None = None,
     ) -> UploadedCode:
         stored_paths = [
             file_storage.save_uploaded_file(
@@ -126,7 +147,7 @@ class CodeUploadService:
         complexity = analyze_project_complexity(decoded_contents)
         uploaded_code = UploadedCode(
             task_id=task_id,
-            detected_language=detect_project_language(filenames),
+            detected_language=language or detect_project_language(filenames),
             complexity_level=complexity.level,
             total_lines=complexity.total_lines,
             total_files=len(entries),

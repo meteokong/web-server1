@@ -108,6 +108,7 @@ async def create_task(
     description: str | None = Form(None),
     upload_method: str = Form(...),
     pasted_code: str | None = Form(None),
+    language: str | None = Form(None),
     files: list[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -134,6 +135,7 @@ async def create_task(
         upload_method,
         files=upload_entries,
         pasted_code=pasted_code,
+        language=language,
     )
     return task
 
