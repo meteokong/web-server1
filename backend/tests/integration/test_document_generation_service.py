@@ -16,7 +16,7 @@ import json
 
 import pytest
 
-from src.api.exceptions import NotFoundError, ValidationAppError
+from src.api.exceptions import NotFoundError
 from src.models.learning_document import LearningDocument
 from src.models.user import User
 from src.services.ai.gemini_client import GeminiAPIError
