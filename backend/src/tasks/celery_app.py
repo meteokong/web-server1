@@ -42,7 +42,7 @@ celery_app = Celery(
     broker=_settings.redis_url,
     backend=_settings.redis_url,
     include=[
-        # "src.tasks.document_generation",  # T094
+        "src.tasks.document_generation",  # T094
         # "src.tasks.practice_generation",  # T118
         # "src.tasks.trash_cleanup",        # T172
     ],
