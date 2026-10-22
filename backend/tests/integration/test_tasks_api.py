@@ -307,3 +307,43 @@ async def test_patch_task_404_for_another_users_task(auth_client, db_session):
     response = await auth_client.patch(f"/api/v1/tasks/{task.id}", json={"title": "Hijacked Title"})
 
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/v1/tasks/{task_id} (T074)
+# ---------------------------------------------------------------------------
+
+
+async def test_delete_task_moves_to_trash(auth_client, db_session):
+    user = await _login(db_session, auth_client, "delete-ok@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Deletable Task")
+
+    response = await auth_client.delete(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["deletion_status"] == "trashed"
+    assert body["trashed_at"] is not None
+    assert body["scheduled_deletion_at"] is not None
+
+
+async def test_delete_task_rejects_missing_auth(auth_client, db_session):
+    user = await UserService(db_session).register("delete-noauth@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "No Auth Task")
+
+    response = await auth_client.delete(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 401
+
+
+async def test_delete_task_404_for_another_users_task(auth_client, db_session):
+    owner = await UserService(db_session).register("delete-owner@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(owner.id, "Project")
+    task = await TaskService(db_session).create(project.id, owner.id, "Not Yours Task")
+    await _login(db_session, auth_client, "delete-stranger@example.com")
+
+    response = await auth_client.delete(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 404
