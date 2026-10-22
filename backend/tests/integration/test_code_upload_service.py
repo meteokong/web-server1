@@ -7,12 +7,9 @@ Every test passes an explicit `upload_root` (pytest tmp_path) so files are
 never written to the real storage/uploads directory.
 """
 
-import uuid
-
 import pytest
 
 from src.api.exceptions import ValidationAppError
-from src.models.uploaded_code import UploadedCode
 from src.models.user import User
 from src.services.code_analysis.code_upload_service import CodeUploadService
 from src.services.project_service import ProjectService
