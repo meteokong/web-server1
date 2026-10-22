@@ -95,18 +95,36 @@ describe("task-service", () => {
       expect(task).toEqual(expectedTask);
     });
 
-    it("sends pasted_code for a paste upload", async () => {
+    it("sends pasted_code and language for a paste upload", async () => {
       mockedPost.mockResolvedValue({ data: taskResponseBody });
 
       await createTask("project-1", {
         title: "배열 정렬 연습",
         uploadMethod: "paste",
-        pastedCode: "print(1)",
+        pastedCode: "console.log(1)",
+        pastedLanguage: "javascript",
       });
 
       const formData = mockedPost.mock.calls[0][1] as FormData;
       expect(formData.get("upload_method")).toBe("paste");
-      expect(formData.get("pasted_code")).toBe("print(1)");
+      expect(formData.get("pasted_code")).toBe("console.log(1)");
+      expect(formData.get("language")).toBe("javascript");
+    });
+
+    it("sends each folder file's relativePath as its multipart filename", async () => {
+      mockedPost.mockResolvedValue({ data: taskResponseBody });
+      const file = new File(["x = 1"], "main.py", { type: "text/plain" });
+
+      await createTask("project-1", {
+        title: "폴더 업로드 연습",
+        uploadMethod: "folder",
+        files: [file],
+        relativePaths: ["src/main.py"],
+      });
+
+      const formData = mockedPost.mock.calls[0][1] as FormData;
+      const uploadedFile = formData.get("files") as File;
+      expect(uploadedFile.name).toBe("src/main.py");
     });
   });
 
