@@ -6,6 +6,7 @@ with a fake object so these tests only exercise GeminiClient's own wiring
 """
 
 import pytest
+import requests
 from google.genai import errors as genai_errors
 
 from src.services.ai.gemini_client import (
@@ -82,7 +83,11 @@ def test_generate_content_passes_system_instruction_and_json_mode():
 
 
 def test_generate_content_wraps_api_errors():
-    fake_response = type("Resp", (), {"json": lambda self: {"message": "quota exceeded", "status": "RESOURCE_EXHAUSTED"}})()
+    fake_response = requests.Response()
+    fake_response.status_code = 429
+    fake_response._content = (
+        b'{"error": {"message": "quota exceeded", "status": "RESOURCE_EXHAUSTED"}}'
+    )
     api_error = genai_errors.APIError(429, fake_response)
     fake_models = _FakeModels(exception=api_error)
     client = GeminiClient(client=_FakeGenaiClient(fake_models))
