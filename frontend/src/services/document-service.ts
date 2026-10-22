@@ -152,3 +152,19 @@ export async function getDocument(taskId: string): Promise<TaskDocument> {
     content: body.content ? toDocumentContent(body.content) : null,
   };
 }
+
+const TERMINAL_GENERATION_STATUSES: DocumentGenerationStatus[] = ["completed", "failed"];
+
+/**
+ * How long (ms) a TanStack Query `refetchInterval` should wait before
+ * re-polling GET .../document/status (T107), given the status's last
+ * known value. Returns `false` once generation is in a terminal state
+ * ("completed"/"failed") so polling stops, or before the first fetch has
+ * resolved (nothing to poll yet).
+ */
+export function documentStatusPollIntervalMs(
+  status: DocumentGenerationStatus | undefined,
+): number | false {
+  if (!status || TERMINAL_GENERATION_STATUSES.includes(status)) return false;
+  return 4000;
+}

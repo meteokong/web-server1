@@ -18,6 +18,9 @@ vi.mock("@monaco-editor/react", () => ({
 vi.mock("@/services/document-service", () => ({
   getDocumentStatus: vi.fn(),
   getDocument: vi.fn(),
+  // Real implementation (pure, no side effects) — no need to mock its logic.
+  documentStatusPollIntervalMs: (status: string | undefined) =>
+    status === "completed" || status === "failed" || status === undefined ? false : 4000,
 }));
 
 vi.mock("@/services/task-service", () => ({
