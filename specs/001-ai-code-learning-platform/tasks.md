@@ -216,7 +216,7 @@ Web application structure (from plan.md):
 ### Backend: Task API Endpoints
 
 - [X] T070 Implement GET /projects/{project_id}/tasks endpoint in backend/src/api/tasks.py
-- [ ] T071 Implement POST /projects/{project_id}/tasks (multipart/form-data upload) endpoint in backend/src/api/tasks.py
+- [X] T071 Implement POST /projects/{project_id}/tasks (multipart/form-data upload) endpoint in backend/src/api/tasks.py
 - [ ] T072 Implement GET /tasks/{task_id} endpoint in backend/src/api/tasks.py
 - [ ] T073 Implement PATCH /tasks/{task_id} endpoint in backend/src/api/tasks.py
 - [ ] T074 Implement DELETE /tasks/{task_id} (soft delete) endpoint in backend/src/api/tasks.py
