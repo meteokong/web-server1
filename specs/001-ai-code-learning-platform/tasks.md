@@ -254,7 +254,7 @@ Web application structure (from plan.md):
 
 ### Backend: Document Models & AI Integration
 
-- [ ] T090 Create LearningDocument SQLAlchemy model with JSONB content in backend/src/models/learning_document.py (must match T009 migration schema)
+- [X] T090 Create LearningDocument SQLAlchemy model with JSONB content in backend/src/models/learning_document.py (must match T009 migration schema)
 - [ ] T091 Implement Gemini API client wrapper in backend/src/services/ai/gemini_client.py
 - [ ] T092 Implement prompt templates for 7-chapter document generation in backend/src/services/ai/prompts.py
 - [ ] T093 Implement DocumentGenerationService with retry logic in backend/src/services/document/document_generation_service.py
