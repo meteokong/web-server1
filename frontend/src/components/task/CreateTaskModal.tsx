@@ -13,7 +13,10 @@ export interface CreateTaskModalValues {
   description: string;
   uploadMethod: UploadMethod;
   files?: File[];
+  /** For "folder": each `files` entry's own folder-relative path. */
+  relativePaths?: (string | undefined)[];
   pastedCode?: string;
+  pastedLanguage?: string;
 }
 
 export interface CreateTaskModalProps {
@@ -39,14 +42,18 @@ export function CreateTaskModal({ open, onClose, onSubmit }: CreateTaskModalProp
   const [description, setDescription] = useState("");
   const [uploadMethod, setUploadMethod] = useState<UploadMethod>("file");
   const [files, setFiles] = useState<File[]>([]);
+  const [relativePaths, setRelativePaths] = useState<(string | undefined)[]>([]);
   const [pastedCode, setPastedCode] = useState("");
+  const [pastedLanguage, setPastedLanguage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleUploadMethodChange(nextMethod: UploadMethod) {
     setUploadMethod(nextMethod);
     setFiles([]);
+    setRelativePaths([]);
     setPastedCode("");
+    setPastedLanguage("");
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -64,7 +71,7 @@ export function CreateTaskModal({ open, onClose, onSubmit }: CreateTaskModalProp
         title,
         description,
         uploadMethod,
-        ...(uploadMethod === "paste" ? { pastedCode } : { files }),
+        ...(uploadMethod === "paste" ? { pastedCode, pastedLanguage } : { files, relativePaths }),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "태스크 생성에 실패했습니다.");
@@ -134,16 +141,29 @@ export function CreateTaskModal({ open, onClose, onSubmit }: CreateTaskModalProp
               </label>
             </fieldset>
 
-            {uploadMethod === "file" && <FileUpload onFilesSelected={setFiles} />}
+            {uploadMethod === "file" && (
+              <FileUpload
+                onFilesSelected={(selected) => {
+                  setFiles(selected);
+                  setRelativePaths(selected.map(() => undefined));
+                }}
+              />
+            )}
             {uploadMethod === "folder" && (
               <FolderUpload
-                onFilesSelected={(picked: FolderUploadFile[]) =>
-                  setFiles(picked.map((p) => p.file))
-                }
+                onFilesSelected={(picked: FolderUploadFile[]) => {
+                  setFiles(picked.map((p) => p.file));
+                  setRelativePaths(picked.map((p) => p.relativePath));
+                }}
               />
             )}
             {uploadMethod === "paste" && (
-              <PasteCode onChange={({ code }) => setPastedCode(code)} />
+              <PasteCode
+                onChange={({ code, language }) => {
+                  setPastedCode(code);
+                  setPastedLanguage(language);
+                }}
+              />
             )}
 
             {error && <p role="alert">{error}</p>}

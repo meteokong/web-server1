@@ -73,26 +73,36 @@ export interface CreateTaskFields {
   uploadMethod: "file" | "folder" | "paste";
   /** For "file"/"folder" uploads. */
   files?: File[];
+  /**
+   * For "folder" uploads: each entry in `files` own folder-relative path
+   * (e.g. "src/main.py"), same length/order as `files`. Sent as the
+   * multipart filename — the backend (tasks.py) derives file_path from it
+   * by checking whether the filename contains a path separator.
+   */
+  relativePaths?: (string | undefined)[];
   /** For "paste" uploads. */
   pastedCode?: string;
+  /** For "paste" uploads: the language selected in PasteCode's <select>. */
+  pastedLanguage?: string;
 }
 
 /** POST /projects/{projectId}/tasks, multipart/form-data. */
-export async function createTask(
-  projectId: string,
-  fields: CreateTaskFields,
-): Promise<Task> {
+export async function createTask(projectId: string, fields: CreateTaskFields): Promise<Task> {
   const formData = new FormData();
   formData.append("title", fields.title);
   if (fields.description) formData.append("description", fields.description);
   formData.append("upload_method", fields.uploadMethod);
   if (fields.files) {
-    for (const file of fields.files) {
-      formData.append("files", file);
-    }
+    fields.files.forEach((file, index) => {
+      const relativePath = fields.relativePaths?.[index];
+      formData.append("files", file, relativePath ?? file.name);
+    });
   }
   if (fields.pastedCode !== undefined) {
     formData.append("pasted_code", fields.pastedCode);
+  }
+  if (fields.pastedLanguage !== undefined) {
+    formData.append("language", fields.pastedLanguage);
   }
 
   const response = await apiClient.post<TaskResponseBody>(

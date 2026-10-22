@@ -6,10 +6,7 @@ import { Input } from "@/components/ui/input";
 import { deleteProject, getProject, updateProject } from "@/services/project-service";
 import { createTask, listTasks } from "@/services/task-service";
 import { TaskCard } from "@/components/task/TaskCard";
-import {
-  CreateTaskModal,
-  type CreateTaskModalValues,
-} from "@/components/task/CreateTaskModal";
+import { CreateTaskModal, type CreateTaskModalValues } from "@/components/task/CreateTaskModal";
 
 /**
  * ProjectDetail: fetches and shows one project by the :projectId route
@@ -62,7 +59,9 @@ export default function ProjectDetail() {
         description: values.description || undefined,
         uploadMethod: values.uploadMethod,
         files: values.files,
+        relativePaths: values.relativePaths,
         pastedCode: values.pastedCode,
+        pastedLanguage: values.pastedLanguage,
       }),
     onSuccess: () => {
       // exact: true — tasksQueryKey (["tasks", projectId]) is itself the
