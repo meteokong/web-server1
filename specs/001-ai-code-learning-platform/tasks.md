@@ -230,7 +230,7 @@ Web application structure (from plan.md):
 - [X] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
 - [X] T080 Create task service (CRUD + upload API calls) in frontend/src/services/task-service.ts
 - [X] T081 Implement CreateTaskModal with 3 upload methods in frontend/src/components/task/CreateTaskModal.tsx
-- [ ] T082 Add task list and creation to ProjectDetail page in frontend/src/pages/ProjectDetail.tsx
+- [X] T082 Add task list and creation to ProjectDetail page in frontend/src/pages/ProjectDetail.tsx
 - [ ] T083 Implement TaskDetail page skeleton with tabs (Document, Practice, Q&A) in frontend/src/pages/TaskDetail.tsx
 
 ### Browser Testing: Task & Code Upload
