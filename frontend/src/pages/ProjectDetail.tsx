@@ -172,7 +172,9 @@ export default function ProjectDetail() {
         <CreateTaskModal
           open={isCreateTaskModalOpen}
           onClose={() => setIsCreateTaskModalOpen(false)}
-          onSubmit={(values) => createTaskMutation.mutateAsync(values)}
+          onSubmit={async (values) => {
+            await createTaskMutation.mutateAsync(values);
+          }}
         />
       </section>
     </div>
