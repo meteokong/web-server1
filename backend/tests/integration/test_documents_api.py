@@ -18,8 +18,6 @@ or isn't owned by the current user.
 import uuid
 from datetime import UTC, datetime
 
-import pytest
-
 from src.api.dependencies import ACCESS_TOKEN_COOKIE_NAME
 from src.models.learning_document import LearningDocument
 from src.services.auth.token_service import TokenService

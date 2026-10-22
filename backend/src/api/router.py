@@ -14,6 +14,7 @@ to know about individual feature routers.
 from fastapi import APIRouter
 
 from src.api.auth import router as auth_router
+from src.api.documents import router as documents_router
 from src.api.projects import router as projects_router
 from src.api.tasks import router as tasks_router
 from src.config import get_app_settings
@@ -25,6 +26,9 @@ api_router.include_router(projects_router, prefix="/projects", tags=["projects"]
 # No fixed prefix: tasks.py's routes mix /projects/{project_id}/tasks and
 # /tasks/{task_id} path shapes and spell out their own full paths.
 api_router.include_router(tasks_router, tags=["tasks"])
+# Same reasoning as tasks_router: every route already spells out its own
+# full /tasks/{task_id}/document... path.
+api_router.include_router(documents_router, tags=["documents"])
 
 
 @api_router.get("/health")

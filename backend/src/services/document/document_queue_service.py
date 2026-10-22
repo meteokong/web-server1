@@ -75,6 +75,34 @@ class DocumentQueueService:
             "generation_completed_at": document.generation_completed_at,
         }
 
+    async def get_document(self, task_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+        """Return this task's generation status + content (T097's API
+        contract). ``content`` is only ever non-null when
+        generation_status == "completed" - while pending/in_progress/failed
+        the row holds only placeholder content (T093/T095's
+        _PLACEHOLDER_CONTENT), which callers must never see as real data.
+        Like get_status(), reports "pending" + null content rather than
+        404 when no LearningDocument row exists yet. Raises NotFoundError
+        if the task isn't owned by ``user_id``."""
+        await TaskService(self.db).get(task_id, user_id)  # ownership + 404
+
+        document = await self._get_document(task_id)
+        if document is None:
+            return {
+                "task_id": task_id,
+                "generation_status": "pending",
+                "generation_error": None,
+                "content": None,
+            }
+
+        content = document.content if document.generation_status == "completed" else None
+        return {
+            "task_id": task_id,
+            "generation_status": document.generation_status,
+            "generation_error": document.generation_error,
+            "content": content,
+        }
+
     async def _get_document(self, task_id: uuid.UUID) -> LearningDocument | None:
         result = await self.db.execute(
             select(LearningDocument).where(LearningDocument.task_id == task_id)
