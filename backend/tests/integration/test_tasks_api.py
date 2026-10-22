@@ -124,6 +124,9 @@ async def test_create_task_with_folder_upload_sets_nested_relative_paths(auth_cl
 
     assert response.status_code == 201
     assert response.json()["title"] == "Folder Task"
+    task_id = response.json()["id"]
+    code = (await auth_client.get(f"/api/v1/tasks/{task_id}/code")).json()
+    assert code["code_files"][0]["file_path"] == "src/main.py"
 
 
 async def test_create_task_with_pasted_code(auth_client, db_session):
@@ -141,6 +144,26 @@ async def test_create_task_with_pasted_code(auth_client, db_session):
 
     assert response.status_code == 201
     assert response.json()["upload_method"] == "paste"
+
+
+async def test_create_task_with_pasted_code_and_explicit_language(auth_client, db_session):
+    user = await _login(db_session, auth_client, "create-pastelang@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+
+    response = await auth_client.post(
+        f"/api/v1/projects/{project.id}/tasks",
+        data={
+            "title": "Paste Task JS",
+            "upload_method": "paste",
+            "pasted_code": "console.log('hi');\n",
+            "language": "javascript",
+        },
+    )
+
+    assert response.status_code == 201
+    task_id = response.json()["id"]
+    code = (await auth_client.get(f"/api/v1/tasks/{task_id}/code")).json()
+    assert code["detected_language"] == "javascript"
 
 
 async def test_create_task_rejects_title_under_5_characters(auth_client, db_session):

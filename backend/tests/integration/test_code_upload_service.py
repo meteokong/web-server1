@@ -153,12 +153,33 @@ async def test_upload_paste_persists_uploaded_code_as_single_file(db_session, tm
     uploaded_code = await service.upload(task.id, user.id, "paste", pasted_code="print('hello')\n")
 
     # Pasted code is stored as a fixed pasted_code.txt filename, so
-    # language detection resolves by extension (.txt -> "text") rather
-    # than by content — detecting the actual language from a snippet
-    # without any file extension hint is out of scope for this task.
+    # without an explicit `language` (below), detection falls back to
+    # extension (.txt -> "text") rather than content.
     assert uploaded_code.total_files == 1
     assert len(uploaded_code.code_files) == 1
     assert uploaded_code.detected_language == "text"
+
+
+async def test_upload_paste_uses_explicit_language_when_given(db_session, tmp_path):
+    # PasteCode's language <select> (T078) tells us the language directly —
+    # trust it instead of falling back to the pasted_code.txt extension,
+    # which would always resolve to "text" regardless of content.
+    user, task = await _make_task(db_session, "upload-pastelang@example.com")
+    service = CodeUploadService(db_session, upload_root=tmp_path)
+
+    uploaded_code = await service.upload(
+        task.id, user.id, "paste", pasted_code="print('hello')\n", language="javascript"
+    )
+
+    assert uploaded_code.detected_language == "javascript"
+
+
+async def test_upload_rejects_unsupported_language(db_session, tmp_path):
+    user, task = await _make_task(db_session, "upload-badlang@example.com")
+    service = CodeUploadService(db_session, upload_root=tmp_path)
+
+    with pytest.raises(ValidationAppError):
+        await service.upload(task.id, user.id, "paste", pasted_code="x = 1", language="cobol")
 
 
 async def test_upload_paste_rejects_blank_code(db_session, tmp_path):
