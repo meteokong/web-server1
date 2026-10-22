@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "radix-ui";
 import { getTask } from "@/services/task-service";
+import DocumentViewer from "@/components/document/DocumentViewer";
 
 const PLACEHOLDER_TEXT = "아직 구현되지 않았습니다.";
 
@@ -50,7 +51,7 @@ export default function TaskDetail() {
           <Tabs.Trigger value="qa">질의응답</Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="document">
-          <p>{PLACEHOLDER_TEXT}</p>
+          <DocumentViewer taskId={task.id} />
         </Tabs.Content>
         <Tabs.Content value="practice">
           <p>{PLACEHOLDER_TEXT}</p>
