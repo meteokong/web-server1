@@ -272,7 +272,7 @@ Web application structure (from plan.md):
 
 ### Frontend: Document Viewer UI
 
-- [ ] T099 [P] Install and configure Monaco Editor in frontend/
+- [X] T099 [P] Install and configure Monaco Editor in frontend/
 - [ ] T100 [P] Create CodePanel component with syntax highlighting in frontend/src/components/document/CodePanel.tsx
 - [ ] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
 - [ ] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
