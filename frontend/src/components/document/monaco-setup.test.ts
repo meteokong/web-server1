@@ -11,7 +11,9 @@ import Editor, { loader } from "@monaco-editor/react";
 describe("Monaco Editor setup", () => {
   it("exposes the Editor component from @monaco-editor/react", () => {
     expect(Editor).toBeDefined();
-    expect(typeof Editor).toBe("function");
+    // Editor is wrapped in React.memo, so it's an object (with a $$typeof
+    // of react.memo), not a plain function component.
+    expect(typeof Editor).toBe("object");
   });
 
   it("exposes the loader used to configure the Monaco instance", () => {
