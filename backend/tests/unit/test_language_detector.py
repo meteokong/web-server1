@@ -49,6 +49,61 @@ def test_detect_file_language_falls_back_to_pygments_for_html_doctype():
     assert detect_file_language("noext", content) == "html"
 
 
+def test_detect_file_language_falls_back_to_keywords_for_javascript():
+    # JavascriptLexer has no custom analyse_text (always scores 0.0), so
+    # this must be resolved by the keyword-marker fallback, not Pygments.
+    content = (
+        "class Item {\n"
+        "  constructor(name, qty) {\n"
+        "    this.name = name;\n"
+        "    this.qty = qty;\n"
+        "  }\n"
+        "}\n"
+        "const inv = new Item('widget', 10);\n"
+        "console.log(`Total: ${inv.qty}`);\n"
+        "module.exports = Item;\n"
+    )
+    assert detect_file_language("noext", content) == "javascript"
+
+
+def test_detect_file_language_falls_back_to_keywords_for_typescript():
+    content = (
+        "interface Item {\n"
+        "  name: string;\n"
+        "  quantity: number;\n"
+        "}\n"
+        "export type ItemList = Item[];\n"
+        "function total(items: ItemList): number {\n"
+        "  return items.reduce((sum, i) => sum + i.quantity, 0);\n"
+        "}\n"
+    )
+    assert detect_file_language("noext", content) == "typescript"
+
+
+def test_detect_file_language_falls_back_to_keywords_for_java():
+    content = (
+        "import java.util.List;\n\n"
+        "public class Hello {\n"
+        "    public static void main(String[] args) {\n"
+        '        System.out.println("Hello");\n'
+        "    }\n"
+        "}\n"
+    )
+    assert detect_file_language("noext", content) == "java"
+
+
+def test_detect_file_language_falls_back_to_keywords_for_css():
+    content = (
+        "@media (max-width: 600px) {\n"
+        "  .container {\n"
+        "    color: red;\n"
+        "    margin: 0 auto;\n"
+        "  }\n"
+        "}\n"
+    )
+    assert detect_file_language("noext", content) == "css"
+
+
 def test_detect_file_language_returns_unknown_for_unrecognizable_content():
     assert detect_file_language("noext", "just some plain ambiguous words") == UNKNOWN_LANGUAGE
 
