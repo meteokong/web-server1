@@ -262,7 +262,7 @@ Web application structure (from plan.md):
 ### Backend: Async Document Generation
 
 - [X] T094 Implement Celery task for async document generation in backend/src/tasks/document_generation.py
-- [ ] T095 Implement document generation queue with status tracking in backend/src/services/document/document_queue_service.py
+- [X] T095 Implement document generation queue with status tracking in backend/src/services/document/document_queue_service.py
 - [ ] T096 Add document generation trigger after code upload in TaskService
 
 ### Backend: Document API Endpoints
