@@ -220,7 +220,7 @@ Web application structure (from plan.md):
 - [X] T072 Implement GET /tasks/{task_id} endpoint in backend/src/api/tasks.py
 - [X] T073 Implement PATCH /tasks/{task_id} endpoint in backend/src/api/tasks.py
 - [X] T074 Implement DELETE /tasks/{task_id} (soft delete) endpoint in backend/src/api/tasks.py
-- [ ] T075 Implement GET /tasks/{task_id}/code endpoint in backend/src/api/tasks.py
+- [X] T075 Implement GET /tasks/{task_id}/code endpoint in backend/src/api/tasks.py
 
 ### Frontend: Code Upload UI
 
