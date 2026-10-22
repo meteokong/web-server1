@@ -51,6 +51,11 @@ class TaskListResponse(BaseModel):
     tasks: list[TaskResponse]
 
 
+class TaskUpdateRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+
+
 def get_upload_root() -> Path | None:
     """FastAPI dependency so tests can override where CodeUploadService
     writes files (default: None, i.e. the configured storage/uploads)."""
@@ -116,3 +121,15 @@ async def get_task(
     db: AsyncSession = Depends(get_db),
 ) -> Task:
     return await TaskService(db).get(task_id, current_user.id)
+
+
+@router.patch("/tasks/{task_id}", response_model=TaskResponse)
+async def update_task(
+    task_id: uuid.UUID,
+    body: TaskUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Task:
+    return await TaskService(db).update(
+        task_id, current_user.id, title=body.title, description=body.description
+    )
