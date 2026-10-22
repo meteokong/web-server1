@@ -62,6 +62,11 @@ def test_detect_file_language_decodes_bytes_content():
     assert detect_file_language("script", content) == "python"
 
 
+def test_detect_file_language_returns_unknown_for_undecodable_bytes():
+    content = b"\xff\xfe\x00\x01not valid utf-8"
+    assert detect_file_language("noext", content) == UNKNOWN_LANGUAGE
+
+
 def test_detect_project_language_returns_dominant_language():
     filenames = ["a.py", "b.py", "c.py", "d.js"]
     assert detect_project_language(filenames) == "python"
