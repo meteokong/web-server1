@@ -191,3 +191,51 @@ async def test_create_task_404_for_unknown_project(auth_client, db_session):
     )
 
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/tasks/{task_id} (T072)
+# ---------------------------------------------------------------------------
+
+
+async def test_get_task_success(auth_client, db_session):
+    user = await _login(db_session, auth_client, "get-ok@example.com")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "Gettable Task")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == str(task.id)
+    assert body["title"] == "Gettable Task"
+
+
+async def test_get_task_rejects_missing_auth(auth_client, db_session):
+    user = await UserService(db_session).register("get-noauth@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(user.id, "Project")
+    task = await TaskService(db_session).create(project.id, user.id, "No Auth Task")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 401
+
+
+async def test_get_task_404_for_unknown_id(auth_client, db_session):
+    await _login(db_session, auth_client, "get-unknown@example.com")
+
+    response = await auth_client.get(f"/api/v1/tasks/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"
+
+
+async def test_get_task_404_for_another_users_task(auth_client, db_session):
+    owner = await UserService(db_session).register("get-owner@example.com", "correct-horse-123")
+    project = await ProjectService(db_session).create(owner.id, "Project")
+    task = await TaskService(db_session).create(project.id, owner.id, "Not Yours Task")
+    await _login(db_session, auth_client, "get-stranger@example.com")
+
+    response = await auth_client.get(f"/api/v1/tasks/{task.id}")
+
+    assert response.status_code == 404
