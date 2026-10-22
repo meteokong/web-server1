@@ -16,6 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base
 
 if TYPE_CHECKING:
+    from src.models.learning_document import LearningDocument
     from src.models.project import Project
     from src.models.uploaded_code import UploadedCode
 
@@ -52,6 +53,9 @@ class Task(Base):
 
     project: Mapped["Project"] = relationship(back_populates="tasks")
     uploaded_code: Mapped["UploadedCode | None"] = relationship(
+        back_populates="task", uselist=False, cascade="all, delete-orphan"
+    )
+    learning_document: Mapped["LearningDocument | None"] = relationship(
         back_populates="task", uselist=False, cascade="all, delete-orphan"
     )
 
