@@ -205,7 +205,7 @@ Web application structure (from plan.md):
 - [X] T063 [P] Create CodeFile SQLAlchemy model in backend/src/models/code_file.py (must match T009 migration schema)
 - [X] T064 Implement file validation utilities (extension, size, binary detection) in backend/src/utils/file_validator.py
 - [X] T065 Implement language detection service using Pygments in backend/src/services/code_analysis/language_detector.py
-- [ ] T066 Implement code complexity analyzer in backend/src/services/code_analysis/complexity_analyzer.py
+- [X] T066 Implement code complexity analyzer in backend/src/services/code_analysis/complexity_analyzer.py
 
 ### Backend: Code Upload Services
 
