@@ -40,7 +40,13 @@ def test_refresh_token_rejected_as_access_token():
 
 def test_tampered_token_is_rejected():
     token = create_access_token("user-123")
-    tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+    # Flip a character inside the payload segment (not the very last
+    # character of the signature: base64url's last symbol only carries 2
+    # significant bits for a 32-byte HMAC digest, so some flips there
+    # decode to the exact same signature bytes and wouldn't prove anything).
+    header, payload, signature = token.split(".")
+    tampered_payload = payload[:-1] + ("A" if payload[-1] != "A" else "B")
+    tampered = f"{header}.{tampered_payload}.{signature}"
     with pytest.raises(InvalidTokenError):
         decode_access_token(tampered)
 

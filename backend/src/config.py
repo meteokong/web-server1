@@ -27,3 +27,23 @@ class AppSettings(BaseSettings):
 @lru_cache
 def get_app_settings() -> AppSettings:
     return AppSettings()
+
+
+class StorageSettings(BaseSettings):
+    """UPLOAD_DIR: where uploaded code files are written (see file_storage.py, T067)."""
+
+    model_config = SettingsConfigDict(env_file=_ENV_FILE, extra="ignore")
+
+    upload_dir: str = "./storage/uploads"
+
+    @property
+    def upload_root(self) -> Path:
+        """``upload_dir`` resolved to an absolute path, relative to the
+        project root (matching .env.example's `./storage/uploads`)."""
+        root = Path(self.upload_dir)
+        return root if root.is_absolute() else _PROJECT_ROOT / root
+
+
+@lru_cache
+def get_storage_settings() -> StorageSettings:
+    return StorageSettings()

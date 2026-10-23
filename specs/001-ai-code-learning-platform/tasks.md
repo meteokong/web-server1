@@ -117,29 +117,29 @@ Web application structure (from plan.md):
 
 ### Backend: Authentication Models & Services
 
-- [ ] T023 [P] Create User SQLAlchemy model in backend/src/models/user.py (must match T009 migration schema)
-- [ ] T024 [P] Create RefreshToken SQLAlchemy model in backend/src/models/refresh_token.py (must match T009 migration schema)
-- [ ] T025 Implement UserService (register, login, logout) in backend/src/services/auth/user_service.py
-- [ ] T026 Implement TokenService (create access/refresh tokens, verify, rotate) in backend/src/services/auth/token_service.py
-- [ ] T027 [P] Create authentication dependency for route protection in backend/src/api/dependencies.py
+- [X] T023 [P] Create User SQLAlchemy model in backend/src/models/user.py (must match T009 migration schema)
+- [X] T024 [P] Create RefreshToken SQLAlchemy model in backend/src/models/refresh_token.py (must match T009 migration schema)
+- [X] T025 Implement UserService (register, login, logout) in backend/src/services/auth/user_service.py
+- [X] T026 Implement TokenService (create access/refresh tokens, verify, rotate) in backend/src/services/auth/token_service.py
+- [X] T027 [P] Create authentication dependency for route protection in backend/src/api/dependencies.py
 
 ### Backend: Authentication API Endpoints
 
-- [ ] T028 Implement POST /auth/register endpoint in backend/src/api/auth.py
-- [ ] T029 Implement POST /auth/login endpoint in backend/src/api/auth.py
-- [ ] T029A Implement GET /auth/me endpoint (current user) in backend/src/api/auth.py
-- [ ] T030 Implement POST /auth/logout endpoint in backend/src/api/auth.py
-- [ ] T031 Implement POST /auth/refresh endpoint in backend/src/api/auth.py
+- [X] T028 Implement POST /auth/register endpoint in backend/src/api/auth.py
+- [X] T029 Implement POST /auth/login endpoint in backend/src/api/auth.py
+- [X] T029A Implement GET /auth/me endpoint (current user) in backend/src/api/auth.py
+- [X] T030 Implement POST /auth/logout endpoint in backend/src/api/auth.py
+- [X] T031 Implement POST /auth/refresh endpoint in backend/src/api/auth.py
 
 ### Frontend: Authentication UI
 
-- [ ] T032 [P] Create RegisterForm component in frontend/src/components/auth/RegisterForm.tsx
-- [ ] T033 [P] Create LoginForm component in frontend/src/components/auth/LoginForm.tsx
-- [ ] T034 Create authentication service (register, login, logout API calls) in frontend/src/services/auth-service.ts
-- [ ] T035 Implement Register page in frontend/src/pages/Register.tsx
-- [ ] T036 Implement Login page in frontend/src/pages/Login.tsx
-- [ ] T037 Create ProtectedRoute wrapper component in frontend/src/components/auth/ProtectedRoute.tsx
-- [ ] T038 Implement auto token refresh logic in frontend/src/hooks/useAuth.ts
+- [X] T032 [P] Create RegisterForm component in frontend/src/components/auth/RegisterForm.tsx
+- [X] T033 [P] Create LoginForm component in frontend/src/components/auth/LoginForm.tsx
+- [X] T034 Create authentication service (register, login, logout API calls) in frontend/src/services/auth-service.ts
+- [X] T035 Implement Register page in frontend/src/pages/Register.tsx
+- [X] T036 Implement Login page in frontend/src/pages/Login.tsx
+- [X] T037 Create ProtectedRoute wrapper component in frontend/src/components/auth/ProtectedRoute.tsx
+- [X] T038 Implement auto token refresh logic in frontend/src/hooks/useAuth.ts
 
 ### Browser Testing: Authentication Flow
 
@@ -160,33 +160,33 @@ Web application structure (from plan.md):
 
 ### Backend: Project Models & Services
 
-- [ ] T043 Create Project SQLAlchemy model with soft delete fields in backend/src/models/project.py (must match T009 migration schema)
-- [ ] T044 Implement ProjectService (create, get, update, soft delete) in backend/src/services/project_service.py
-- [ ] T045 Implement project ownership validation in backend/src/services/project_service.py
+- [X] T043 Create Project SQLAlchemy model with soft delete fields in backend/src/models/project.py (must match T009 migration schema)
+- [X] T044 Implement ProjectService (create, get, update, soft delete) in backend/src/services/project_service.py
+- [X] T045 Implement project ownership validation in backend/src/services/project_service.py
 
 ### Backend: Project API Endpoints
 
-- [ ] T046 Implement GET /projects endpoint in backend/src/api/projects.py
-- [ ] T047 Implement POST /projects endpoint in backend/src/api/projects.py
-- [ ] T048 Implement GET /projects/{project_id} endpoint in backend/src/api/projects.py
-- [ ] T049 Implement PATCH /projects/{project_id} endpoint in backend/src/api/projects.py
-- [ ] T050 Implement DELETE /projects/{project_id} (soft delete) endpoint in backend/src/api/projects.py
+- [X] T046 Implement GET /projects endpoint in backend/src/api/projects.py
+- [X] T047 Implement POST /projects endpoint in backend/src/api/projects.py
+- [X] T048 Implement GET /projects/{project_id} endpoint in backend/src/api/projects.py
+- [X] T049 Implement PATCH /projects/{project_id} endpoint in backend/src/api/projects.py
+- [X] T050 Implement DELETE /projects/{project_id} (soft delete) endpoint in backend/src/api/projects.py
 
 ### Frontend: Project UI
 
-- [ ] T051 [P] Create ProjectCard component in frontend/src/components/project/ProjectCard.tsx
-- [ ] T052 [P] Create CreateProjectModal component in frontend/src/components/project/CreateProjectModal.tsx
-- [ ] T053 Create project service (CRUD API calls) in frontend/src/services/project-service.ts
-- [ ] T054 Implement Dashboard page (project list view) in frontend/src/pages/Dashboard.tsx
-- [ ] T055 Implement ProjectDetail page with task timeline placeholder in frontend/src/pages/ProjectDetail.tsx
-- [ ] T056 Add project creation flow in Dashboard page
+- [X] T051 [P] Create ProjectCard component in frontend/src/components/project/ProjectCard.tsx
+- [X] T052 [P] Create CreateProjectModal component in frontend/src/components/project/CreateProjectModal.tsx
+- [X] T053 Create project service (CRUD API calls) in frontend/src/services/project-service.ts
+- [X] T054 Implement Dashboard page (project list view) in frontend/src/pages/Dashboard.tsx
+- [X] T055 Implement ProjectDetail page with task timeline placeholder in frontend/src/pages/ProjectDetail.tsx
+- [X] T056 Add project creation flow in Dashboard page
 
 ### Browser Testing: Project Management
 
-- [ ] T057 Manual browser test: Create new project → verify appears in dashboard
-- [ ] T058 Manual browser test: View project detail → verify project info displays
-- [ ] T059 Manual browser test: Edit project title → verify update persists
-- [ ] T060 Manual browser test: Delete project → verify soft delete and trash visibility
+- [X] T057 Manual browser test: Create new project → verify appears in dashboard
+- [X] T058 Manual browser test: View project detail → verify project info displays
+- [X] T059 Manual browser test: Edit project title → verify update persists
+- [X] T060 Manual browser test: Delete project → verify soft delete and trash visibility
 
 **Checkpoint**: Complete project management system working in browser
 
@@ -200,47 +200,47 @@ Web application structure (from plan.md):
 
 ### Backend: Task & Code Models
 
-- [ ] T061 [P] Create Task SQLAlchemy model with sequential task_number in backend/src/models/task.py (must match T009 migration schema)
-- [ ] T062 [P] Create UploadedCode SQLAlchemy model in backend/src/models/uploaded_code.py (must match T009 migration schema)
-- [ ] T063 [P] Create CodeFile SQLAlchemy model in backend/src/models/code_file.py (must match T009 migration schema)
-- [ ] T064 Implement file validation utilities (extension, size, binary detection) in backend/src/utils/file_validator.py
-- [ ] T065 Implement language detection service using Pygments in backend/src/services/code_analysis/language_detector.py
-- [ ] T066 Implement code complexity analyzer in backend/src/services/code_analysis/complexity_analyzer.py
+- [X] T061 [P] Create Task SQLAlchemy model with sequential task_number in backend/src/models/task.py (must match T009 migration schema)
+- [X] T062 [P] Create UploadedCode SQLAlchemy model in backend/src/models/uploaded_code.py (must match T009 migration schema)
+- [X] T063 [P] Create CodeFile SQLAlchemy model in backend/src/models/code_file.py (must match T009 migration schema)
+- [X] T064 Implement file validation utilities (extension, size, binary detection) in backend/src/utils/file_validator.py
+- [X] T065 Implement language detection service using Pygments in backend/src/services/code_analysis/language_detector.py
+- [X] T066 Implement code complexity analyzer in backend/src/services/code_analysis/complexity_analyzer.py
 
 ### Backend: Code Upload Services
 
-- [ ] T067 Implement file storage service (save to storage/uploads/{user_id}/{task_id}/) in backend/src/services/code_analysis/file_storage.py
-- [ ] T068 Implement TaskService (create, get, update, soft delete with task_number auto-increment) in backend/src/services/task_service.py
-- [ ] T069 Implement CodeUploadService (handle file/folder/paste uploads) in backend/src/services/code_analysis/code_upload_service.py
+- [X] T067 Implement file storage service (save to storage/uploads/{user_id}/{task_id}/) in backend/src/services/code_analysis/file_storage.py
+- [X] T068 Implement TaskService (create, get, update, soft delete with task_number auto-increment) in backend/src/services/task_service.py
+- [X] T069 Implement CodeUploadService (handle file/folder/paste uploads) in backend/src/services/code_analysis/code_upload_service.py
 
 ### Backend: Task API Endpoints
 
-- [ ] T070 Implement GET /projects/{project_id}/tasks endpoint in backend/src/api/tasks.py
-- [ ] T071 Implement POST /projects/{project_id}/tasks (multipart/form-data upload) endpoint in backend/src/api/tasks.py
-- [ ] T072 Implement GET /tasks/{task_id} endpoint in backend/src/api/tasks.py
-- [ ] T073 Implement PATCH /tasks/{task_id} endpoint in backend/src/api/tasks.py
-- [ ] T074 Implement DELETE /tasks/{task_id} (soft delete) endpoint in backend/src/api/tasks.py
-- [ ] T075 Implement GET /tasks/{task_id}/code endpoint in backend/src/api/tasks.py
+- [X] T070 Implement GET /projects/{project_id}/tasks endpoint in backend/src/api/tasks.py
+- [X] T071 Implement POST /projects/{project_id}/tasks (multipart/form-data upload) endpoint in backend/src/api/tasks.py
+- [X] T072 Implement GET /tasks/{task_id} endpoint in backend/src/api/tasks.py
+- [X] T073 Implement PATCH /tasks/{task_id} endpoint in backend/src/api/tasks.py
+- [X] T074 Implement DELETE /tasks/{task_id} (soft delete) endpoint in backend/src/api/tasks.py
+- [X] T075 Implement GET /tasks/{task_id}/code endpoint in backend/src/api/tasks.py
 
 ### Frontend: Code Upload UI
 
-- [ ] T076 [P] Create FileUpload component (drag-and-drop, file picker) in frontend/src/components/upload/FileUpload.tsx
-- [ ] T077 [P] Create FolderUpload component (preserves structure) in frontend/src/components/upload/FolderUpload.tsx
-- [ ] T078 [P] Create PasteCode component (textarea + language selector) in frontend/src/components/upload/PasteCode.tsx
-- [ ] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
-- [ ] T080 Create task service (CRUD + upload API calls) in frontend/src/services/task-service.ts
-- [ ] T081 Implement CreateTaskModal with 3 upload methods in frontend/src/components/task/CreateTaskModal.tsx
-- [ ] T082 Add task list and creation to ProjectDetail page in frontend/src/pages/ProjectDetail.tsx
-- [ ] T083 Implement TaskDetail page skeleton with tabs (Document, Practice, Q&A) in frontend/src/pages/TaskDetail.tsx
+- [X] T076 [P] Create FileUpload component (drag-and-drop, file picker) in frontend/src/components/upload/FileUpload.tsx
+- [X] T077 [P] Create FolderUpload component (preserves structure) in frontend/src/components/upload/FolderUpload.tsx
+- [X] T078 [P] Create PasteCode component (textarea + language selector) in frontend/src/components/upload/PasteCode.tsx
+- [X] T079 [P] Create TaskCard component for task timeline display in frontend/src/components/task/TaskCard.tsx
+- [X] T080 Create task service (CRUD + upload API calls) in frontend/src/services/task-service.ts
+- [X] T081 Implement CreateTaskModal with 3 upload methods in frontend/src/components/task/CreateTaskModal.tsx
+- [X] T082 Add task list and creation to ProjectDetail page in frontend/src/pages/ProjectDetail.tsx
+- [X] T083 Implement TaskDetail page skeleton with tabs (Document, Practice, Q&A) in frontend/src/pages/TaskDetail.tsx
 
 ### Browser Testing: Task & Code Upload
 
-- [ ] T084 Manual browser test: Create task with single file upload → verify task created with Task 1 number
-- [ ] T085 Manual browser test: Create task with folder upload → verify folder structure preserved
-- [ ] T086 Manual browser test: Create task with paste code → verify language detection
-- [ ] T087 Manual browser test: Upload 11MB file → verify rejection with error message
-- [ ] T088 Manual browser test: Upload binary file → verify rejection with error message
-- [ ] T089 Manual browser test: Create 3 tasks in sequence → verify task numbers are 1, 2, 3
+- [X] T084 Manual browser test: Create task with single file upload → verify task created with Task 1 number
+- [X] T085 Manual browser test: Create task with folder upload → verify folder structure preserved
+- [X] T086 Manual browser test: Create task with paste code → verify language detection
+- [X] T087 Manual browser test: Upload 11MB file → verify rejection with error message
+- [X] T088 Manual browser test: Upload binary file → verify rejection with error message
+- [X] T089 Manual browser test: Create 3 tasks in sequence → verify task numbers are 1, 2, 3
 
 **Checkpoint**: Complete task creation and code upload system working in browser
 
@@ -254,34 +254,34 @@ Web application structure (from plan.md):
 
 ### Backend: Document Models & AI Integration
 
-- [ ] T090 Create LearningDocument SQLAlchemy model with JSONB content in backend/src/models/learning_document.py (must match T009 migration schema)
-- [ ] T091 Implement Gemini API client wrapper in backend/src/services/ai/gemini_client.py
-- [ ] T092 Implement prompt templates for 7-chapter document generation in backend/src/services/ai/prompts.py
-- [ ] T093 Implement DocumentGenerationService with retry logic in backend/src/services/document/document_generation_service.py
+- [X] T090 Create LearningDocument SQLAlchemy model with JSONB content in backend/src/models/learning_document.py (must match T009 migration schema)
+- [X] T091 Implement Gemini API client wrapper in backend/src/services/ai/gemini_client.py
+- [X] T092 Implement prompt templates for 7-chapter document generation in backend/src/services/ai/prompts.py
+- [X] T093 Implement DocumentGenerationService with retry logic in backend/src/services/document/document_generation_service.py
 
 ### Backend: Async Document Generation
 
-- [ ] T094 Implement Celery task for async document generation in backend/src/tasks/document_generation.py
-- [ ] T095 Implement document generation queue with status tracking in backend/src/services/document/document_queue_service.py
-- [ ] T096 Add document generation trigger after code upload in TaskService
+- [X] T094 Implement Celery task for async document generation in backend/src/tasks/document_generation.py
+- [X] T095 Implement document generation queue with status tracking in backend/src/services/document/document_queue_service.py
+- [X] T096 Add document generation trigger after code upload in TaskService
 
 ### Backend: Document API Endpoints
 
-- [ ] T097 Implement GET /tasks/{task_id}/document endpoint in backend/src/api/documents.py
-- [ ] T098 Implement GET /tasks/{task_id}/document/status endpoint in backend/src/api/documents.py
+- [X] T097 Implement GET /tasks/{task_id}/document endpoint in backend/src/api/documents.py
+- [X] T098 Implement GET /tasks/{task_id}/document/status endpoint in backend/src/api/documents.py
 
 ### Frontend: Document Viewer UI
 
-- [ ] T099 [P] Install and configure Monaco Editor in frontend/
-- [ ] T100 [P] Create CodePanel component with syntax highlighting in frontend/src/components/document/CodePanel.tsx
-- [ ] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
-- [ ] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
-- [ ] T103 [P] Create Chapter2Prerequisites component (concept cards) in frontend/src/components/document/chapters/Chapter2.tsx
-- [ ] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
-- [ ] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
-- [ ] T106 Create document service (fetch document, poll status) in frontend/src/services/document-service.ts
-- [ ] T107 Implement loading state with progress indicator in DocumentViewer
-- [ ] T108 Add Document tab content to TaskDetail page in frontend/src/pages/TaskDetail.tsx
+- [X] T099 [P] Install and configure Monaco Editor in frontend/
+- [X] T100 [P] Create CodePanel component with syntax highlighting in frontend/src/components/document/CodePanel.tsx
+- [X] T101 [P] Create ExplanationPanel component with chapter navigation in frontend/src/components/document/ExplanationPanel.tsx
+- [X] T102 [P] Create Chapter1Summary component in frontend/src/components/document/chapters/Chapter1.tsx
+- [X] T103 [P] Create Chapter2Prerequisites component (concept cards) in frontend/src/components/document/chapters/Chapter2.tsx
+- [X] T104 [P] Create Chapter4LineByLine component in frontend/src/components/document/chapters/Chapter4.tsx
+- [X] T105 Create DocumentViewer component (2-column layout with sync scroll) in frontend/src/components/document/DocumentViewer.tsx
+- [X] T106 Create document service (fetch document, poll status) in frontend/src/services/document-service.ts
+- [X] T107 Implement loading state with progress indicator in DocumentViewer
+- [X] T108 Add Document tab content to TaskDetail page in frontend/src/pages/TaskDetail.tsx
 
 ### Browser Testing: Document Generation
 
